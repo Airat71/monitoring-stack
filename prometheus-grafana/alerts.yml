@@ -1,0 +1,63 @@
+# ============================================================================
+# Prometheus Alert Rules — FREE Version (5 basic alerts)
+# ============================================================================
+# Alerts fire in Prometheus UI: http://localhost:9090/alerts
+# No notifications (Alertmanager is PRO).
+#
+# PRO version: 20 alerts + Alertmanager + Telegram/Email notifications.
+# See docs/PURCHASE.md
+# ============================================================================
+
+groups:
+  - name: basic-alerts
+    rules:
+
+      # 1. Any scrape target unreachable
+      - alert: InstanceDown
+        expr: up == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Target {{ $labels.instance }} is DOWN"
+          description: "{{ $labels.job }} target {{ $labels.instance }} has been unreachable for more than 3 minutes."
+
+      # 2. High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU on {{ $labels.instance }}"
+          description: "CPU usage is above 80% on {{ $labels.instance }} for more than 10 minutes. Current value: {{ $value | printf \"%.1f\" }}%"
+
+      # 3. High memory usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory on {{ $labels.instance }}"
+          description: "Memory usage is above 85% on {{ $labels.instance }} for more than 10 minutes. Current value: {{ $value | printf \"%.1f\" }}%"
+
+      # 4. Low disk space
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs",mountpoint="/"} / node_filesystem_size_bytes{fstype!="tmpfs",mountpoint="/"})) * 100 > 80
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk usage is above 80% on {{ $labels.instance }} ({{ $labels.mountpoint }}). Current value: {{ $value | printf \"%.1f\" }}%"
+
+      # 5. Monitoring service down
+      - alert: ServiceDown
+        expr: up{job=~"prometheus|node-exporter"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Monitoring service {{ $labels.job }} is DOWN"
+          description: "Core monitoring service {{ $labels.job }} has been down for more than 5 minutes. Check Docker containers."

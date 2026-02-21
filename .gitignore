@@ -1,0 +1,22 @@
+# Internal files — do not publish
+RELEASE_SUMMARY.md
+PLACEHOLDERS_TO_REPLACE.md
+PUBLISH_CHECKLIST.md
+docs/PRO_DELIVERY.md
+docs/PRODUCT_SETUP.md
+docs/CRITICAL_FIXES_BEFORE_PUBLISH.md
+
+# Screenshot with internal project names (LeadFinder, TalismanFactory)
+screenshots/06-alertmanager.png
+
+# Local / secrets
+.env
+prometheus-grafana/.env
+*.pem
+id_rsa
+id_ecdsa
+*.key
+
+# OS
+.DS_Store
+Thumbs.db

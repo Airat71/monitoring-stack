@@ -1,0 +1,47 @@
+# ============================================================================
+# Prometheus Configuration — FREE Version
+# ============================================================================
+# Monitors: Prometheus itself + Node Exporter (system metrics)
+#
+# To add more targets: add entries under static_configs
+# PRO version uses Ansible templates for dynamic configuration
+# ============================================================================
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          instance: 'prometheus'
+          component: 'monitoring'
+
+  # System metrics via Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          instance: 'monitoring-server'
+          hostname: 'server1'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # -----------------------------------------------------------------------
+  # To monitor additional servers, add targets here:
+  #
+  #   - targets: ['10.0.0.2:9100']
+  #     labels:
+  #       instance: 'web-server'
+  #       hostname: 'web1'
+  #
+  # PRO version automates this with Ansible.
+  # See docs/QUICK_START.md for manual setup.
+  # -----------------------------------------------------------------------
