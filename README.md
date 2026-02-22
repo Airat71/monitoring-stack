@@ -213,13 +213,17 @@ Everything you need: monitoring, alerting, dashboards, backups, documentation.
 **Free Documentation:**
 - [README.md](README.md) - This file
 - [QUICK_START.md](docs/QUICK_START.md) - Get started in 5 minutes
-**PRO Documentation (20 guides):**
-- [INSTALLATION.md](docs/INSTALLATION.md) - Complete setup guide
-- [SECURITY.md](docs/SECURITY.md) - Security best practices
-- [OPERATIONS.md](docs/OPERATIONS.md) - Daily operations runbook
-- [MONITORING.md](docs/MONITORING.md) - Alert configuration
-- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Problem solving
-- And 20+ more specialized guides!
+- [FEATURES.md](docs/FEATURES.md) - Detailed FREE vs PRO comparison
+
+**PRO Documentation (20 guides — included with purchase):**
+- INSTALLATION.md - Production deployment with Ansible
+- SECURITY.md - Security best practices (localhost binding, SSH tunnels, hardening)
+- OPERATIONS.md - Daily operations runbook
+- MONITORING.md - Alert configuration guide
+- TROUBLESHOOTING.md - Advanced troubleshooting
+- And 15+ more specialized guides
+
+**[Get PRO Documentation →](docs/PURCHASE.md)**
 
 ---
 
