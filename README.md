@@ -2,6 +2,7 @@
 
 **Production-ready monitoring solution with Prometheus, Grafana, and advanced security features**
 
+[![CI](https://github.com/Airat71/monitoring-stack/actions/workflows/ci.yml/badge.svg)](https://github.com/Airat71/monitoring-stack/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/License-Open%20Core-blue.svg)](LICENSE.md)
 [![Version](https://img.shields.io/badge/Version-1.0.2-green.svg)](CHANGELOG.md)
 [![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)]()

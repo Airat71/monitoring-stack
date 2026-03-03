@@ -1,0 +1,28 @@
+# CI — validate Docker Compose and configs before merge
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate (Docker Compose)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+        working-directory: prometheus-grafana
+
+      - name: Validate Prometheus config and alert rules
+        run: |
+          docker run --rm \
+            -v "$PWD/prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+            -v "$PWD/prometheus-grafana/alerts.yml:/etc/prometheus/alerts.yml:ro" \
+            prom/prometheus:latest \
+            promtool check config /etc/prometheus/prometheus.yml
