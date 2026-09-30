@@ -1,4 +1,3 @@
-# CI — validate Docker Compose and configs before merge
 name: CI
 
 on:
@@ -7,15 +6,18 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  validate:
-    name: Validate (Docker Compose)
+  validate-compose:
+    name: Validate Docker Compose
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Validate Docker Compose
+      - name: Validate Docker Compose config
         run: docker compose config --quiet
         working-directory: prometheus-grafana
 
@@ -26,3 +28,51 @@ jobs:
             -v "$PWD/prometheus-grafana/alerts.yml:/etc/prometheus/alerts.yml:ro" \
             prom/prometheus:latest \
             check config /etc/prometheus/prometheus.yml
+
+  validate-yaml:
+    name: Validate YAML (Ansible + alerts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse YAML files
+        run: |
+          python3 -m pip install --user pyyaml -q
+          python3 << 'PY'
+          import sys
+          from pathlib import Path
+          import yaml
+          skip = {".git", ".github", "grafana-dashboards"}
+          errors = []
+          for p in Path(".").rglob("*.yml"):
+              if any(part in skip for part in p.parts):
+                  continue
+              try:
+                  yaml.safe_load(p.read_text())
+                  print("OK", p)
+              except yaml.YAMLError as e:
+                  errors.append(f"FAIL {p}: {e}")
+          for p in Path(".").rglob("*.yaml"):
+              if any(part in skip for part in p.parts):
+                  continue
+              try:
+                  yaml.safe_load(p.read_text())
+                  print("OK", p)
+              except yaml.YAMLError as e:
+                  errors.append(f"FAIL {p}: {e}")
+          if errors:
+              print("\n".join(errors), file=sys.stderr)
+              sys.exit(1)
+          PY
+
+  shellcheck:
+    name: ShellCheck (scripts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@2.0.0
+        with:
+          scandir: ./scripts
+          severity: warning

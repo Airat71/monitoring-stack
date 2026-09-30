@@ -1,0 +1,30 @@
+# TROUBLESHOOTING — PRO
+
+## InstanceDown
+
+- **Cause:** Target not reachable (node-exporter down, network, firewall).
+- **Check:** `curl http://<target>:9100/metrics` from the monitoring server. Ensure port 9100 is open on the target and node-exporter (or Docker container) is running.
+- **Fix:** Restart node-exporter on the target; check firewall and inventory `ansible_host`.
+
+## Grafana "No data"
+
+- **Cause:** Prometheus not scraped yet, or wrong datasource/variable.
+- **Check:** Prometheus → Status → Targets — is the job UP? Grafana → Connections → Data sources — is Prometheus URL correct?
+- **Fix:** Wait for scrape interval; fix Prometheus target or Grafana datasource.
+
+## Alertmanager not receiving
+
+- **Cause:** Wrong Telegram token/chat_id or SMTP config; or Prometheus not pointing to Alertmanager.
+- **Check:** `prometheus.yml` has `alerting.alertmanagers` with correct target. Alertmanager logs: `docker compose logs alertmanager`.
+- **Fix:** Set Telegram/SMTP in vault or .env; reload Prometheus and Alertmanager.
+
+## High memory/CPU on monitoring server
+
+- **Cause:** Long retention, too many targets, or heavy queries.
+- **Fix:** Reduce `prometheus_retention` (e.g. 15d); limit dashboard refresh; add more resources to the monitoring host.
+
+## Blackbox probe failed
+
+- **Cause:** Target URL unreachable (DNS, HTTP error, timeout).
+- **Check:** From monitoring server: `curl -I <target_url>`. Blackbox exporter logs.
+- **Fix:** Fix target URL or network; adjust Blackbox module (e.g. http_2xx) and timeouts.

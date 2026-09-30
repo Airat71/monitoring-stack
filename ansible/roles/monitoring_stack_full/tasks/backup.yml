@@ -1,0 +1,22 @@
+---
+# Optional: deploy backup script and cron. Enable with deploy_backup_script: true in group_vars.
+
+- name: Ensure scripts dir on server
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/scripts"
+    state: directory
+    mode: "0755"
+
+- name: Deploy backup script
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../scripts/backup-monitoring.sh"
+    dest: "{{ monitoring_base_dir }}/scripts/backup-monitoring.sh"
+    mode: "0750"
+
+- name: Ensure backup cron job (daily 02:00)
+  ansible.builtin.cron:
+    name: "PRO monitoring backup"
+    minute: "0"
+    hour: "2"
+    job: "MONITORING_DIR={{ monitoring_base_dir }} BACKUP_DIR={{ backup_dir | default('/backup/monitoring') }} RETENTION_DAYS={{ backup_retention_days | default(7) }} {{ monitoring_base_dir }}/scripts/backup-monitoring.sh"
+  when: backup_cron_enabled | default(true) | bool

@@ -1,0 +1,115 @@
+---
+# PRO: deploy full monitoring stack (Prometheus, Grafana, Alertmanager, Node Exporter, Blackbox)
+# Assumes Docker and Docker Compose are installed (add a role or pre-requisite if needed)
+
+- name: Create monitoring directories
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - ""
+    - grafana/provisioning/dashboards
+    - grafana/provisioning/dashboards/json
+    - grafana/provisioning/datasources
+  loop_control:
+    label: "{{ item or 'root' }}"
+
+- name: Deploy Grafana datasource (Prometheus)
+  ansible.builtin.template:
+    src: grafana-datasource.yml.j2
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/datasources/prometheus.yml"
+    mode: "0644"
+
+- name: Deploy Grafana dashboard provider
+  ansible.builtin.template:
+    src: grafana-dashboards-provider.yml.j2
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/dashboards.yml"
+    mode: "0644"
+
+- name: Stat dashboard JSON dir (controller)
+  ansible.builtin.stat:
+    path: "{{ playbook_dir }}/../grafana-dashboards/json"
+  register: dashboard_json_dir_stat
+  delegate_to: localhost
+  run_once: true
+
+- name: Copy Grafana dashboard JSON folder (run scripts/fetch-dashboards.sh to populate)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../grafana-dashboards/json/"
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/json"
+    mode: "0644"
+  when: dashboard_json_dir_stat.stat.exists | default(false)
+
+- name: Copy docker-compose for PRO stack
+  ansible.builtin.template:
+    src: docker-compose.pro.yml.j2
+    dest: "{{ monitoring_base_dir }}/docker-compose.yml"
+    mode: "0644"
+
+- name: Copy Prometheus config
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ monitoring_base_dir }}/prometheus.yml"
+    mode: "0644"
+
+- name: Copy alert rules (PRO 20 alerts)
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../alerts/alerts-product.yml"
+    dest: "{{ monitoring_base_dir }}/alerts.yml"
+    mode: "0644"
+
+- name: Copy Alertmanager config
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: "{{ monitoring_base_dir }}/alertmanager.yml"
+    mode: "0644"
+  when: deploy_alertmanager | default(true) | bool
+
+- name: Validate Prometheus config (promtool)
+  ansible.builtin.shell: |
+    docker run --rm -v {{ monitoring_base_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+      {{ prometheus_image | default('prom/prometheus:v2.47.2') }} \
+      promtool check config /etc/prometheus/prometheus.yml
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  register: promtool_config
+  changed_when: false
+  failed_when: promtool_config.rc != 0
+
+- name: Validate Prometheus alert rules (promtool)
+  ansible.builtin.shell: |
+    docker run --rm -v {{ monitoring_base_dir }}/alerts.yml:/etc/prometheus/alerts.yml:ro \
+      -v {{ monitoring_base_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
+      {{ prometheus_image | default('prom/prometheus:v2.47.2') }} \
+      promtool check rules /etc/prometheus/alerts.yml
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  register: promtool_rules
+  changed_when: false
+  failed_when: promtool_rules.rc != 0
+
+- name: Ensure .env exists from example
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../prometheus-grafana-pro/.env.example"
+    dest: "{{ monitoring_base_dir }}/.env"
+    mode: "0600"
+    force: false
+  when: skip_env_create is not defined or not skip_env_create
+
+- name: Start monitoring stack (idempotent)
+  ansible.builtin.shell: "docker compose up -d"
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  register: compose_up
+  changed_when: "'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout or 'Recreating' in compose_up.stdout or 'Pull' in compose_up.stdout"
+
+- name: Restart stack after config or compose change
+  ansible.builtin.shell: "docker compose up -d --force-recreate"
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when: compose_up.changed
+
+- name: Include backup script and cron (optional)
+  ansible.builtin.include_tasks: backup.yml
+  when: deploy_backup_script | default(false) | bool

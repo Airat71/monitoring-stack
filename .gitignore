@@ -1,17 +1,18 @@
-# Internal files — do not publish
-RELEASE_SUMMARY.md
-PLACEHOLDERS_TO_REPLACE.md
-PUBLISH_CHECKLIST.md
-docs/PRO_DELIVERY.md
-docs/PRODUCT_SETUP.md
-docs/CRITICAL_FIXES_BEFORE_PUBLISH.md
-
-# Screenshot with internal project names (LeadFinder, TalismanFactory)
-screenshots/06-alertmanager.png
-
-# Local / secrets
+# Secrets and local config — never commit
 .env
 prometheus-grafana/.env
+*.vault
+vault-password
+
+# Ansible runtime files — contain real IPs/credentials
+ansible/group_vars/all.yml
+ansible/inventory.yml
+*.retry
+
+# Screenshots with environment-specific content
+screenshots/06-alertmanager.png
+
+# Keys and certificates
 *.pem
 id_rsa
 id_ecdsa
@@ -20,3 +21,8 @@ id_ecdsa
 # OS
 .DS_Store
 Thumbs.db
+
+# Editor
+.idea
+*.swp
+*.swo

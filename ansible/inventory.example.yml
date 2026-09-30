@@ -1,0 +1,23 @@
+# PRO — example inventory (copy to inventory.yml and set your ansible_host IPs)
+# Do not commit inventory.yml if it contains real hostnames/IPs.
+
+all:
+  children:
+    monitoring_server:
+      hosts:
+        monitor:
+          ansible_host: 192.168.1.10
+      vars:
+        monitoring_install_dir: /opt/monitoring
+
+    monitored_nodes:
+      hosts:
+        web1:
+          ansible_host: 192.168.1.11
+        web2:
+          ansible_host: 192.168.1.12
+      vars:
+        node_exporter_install_method: docker
+
+  vars:
+    ansible_user: ubuntu

@@ -1,0 +1,25 @@
+---
+# PRO: deploy monitoring stack (monitoring server) + Node Exporter (monitored nodes)
+# Usage: ansible-playbook -i inventory.yml playbook.yml
+# Secrets: use group_vars with vault or -e
+
+- name: Deploy full monitoring stack on monitoring server
+  hosts: monitoring_server
+  become: true
+  vars:
+    monitoring_base_dir: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
+    deploy_alertmanager: true
+    deploy_blackbox: true
+  roles:
+    - role: monitoring_stack_full
+      vars:
+        monitoring_base_dir: "{{ monitoring_install_dir | default('/opt/monitoring') }}"
+
+- name: Deploy Node Exporter on monitored nodes
+  hosts: monitored_nodes
+  become: true
+  vars:
+    node_exporter_port: 9100
+    node_exporter_install_method: "{{ node_exporter_method | default('docker') }}"  # docker or systemd
+  roles:
+    - node_exporter
