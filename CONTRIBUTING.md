@@ -1,16 +1,28 @@
-# Contributing to Enterprise Monitoring Stack
+# Contributing
 
-Thank you for your interest in contributing!
+Contributions are welcome.
 
-## How to Contribute
+## Bug reports and feature requests
 
-- **Bug reports and feature requests:** Use [GitHub Issues](https://github.com/Airat71/monitoring-stack/issues).
-- **Documentation improvements:** Pull requests are welcome for the FREE version docs (README, QUICK_START, DEMO, FEATURES).
-- **Code:** Contributions to the open-source (FREE) parts of the project are welcome. Please open an Issue first to discuss larger changes.
+Open a [GitHub Issue](https://github.com/Airat71/monitoring-stack/issues).
 
-## Scope
+## Pull requests
 
-- Contributions apply to the **FREE version** (MIT License).
-- PRO version features and commercial licensing are maintained by the project author.
+- For small fixes (docs, typos, config corrections) — open a PR directly.
+- For larger changes (new dashboards, new Ansible roles, new alert rules) — open an Issue first to discuss.
 
-Repository: [Airat71/monitoring-stack](https://github.com/Airat71/monitoring-stack).
+## What's in scope
+
+- Grafana dashboards
+- Prometheus alert rules
+- Ansible roles and playbooks
+- Documentation improvements
+- Bug fixes
+
+## Code style
+
+- YAML: 2-space indentation
+- Shell scripts: pass ShellCheck (CI enforces this)
+- Ansible: idempotent tasks, no hardcoded IPs or passwords
+
+All contributions are licensed under [MIT](LICENSE.md).
