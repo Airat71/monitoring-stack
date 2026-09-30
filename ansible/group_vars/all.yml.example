@@ -1,0 +1,34 @@
+# PRO group_vars (copy to group_vars/all.yml). Secrets → Ansible Vault or .env on server.
+
+# --- Optional services (universal, no Taiga/n8n) ---
+include_nginx: false
+include_postgresql: false
+include_redis: false
+include_rabbitmq: false
+
+# --- Pinned images (production: reproducible builds) ---
+# prometheus_image: prom/prometheus:v2.47.2
+# grafana_image: grafana/grafana:10.2.2
+# alertmanager_image: prom/alertmanager:v0.26.0
+# node_exporter_image: prom/node-exporter:v1.7.0
+# blackbox_image: prom/blackbox-exporter:v0.24.0
+
+# --- Resources (tune for your host) ---
+# prometheus_memory_limit: 1024M
+# prometheus_memory_reservation: 256M
+# grafana_memory_limit: 512M
+# prometheus_retention: 30d
+
+# --- Grafana ---
+# grafana_root_url: "https://grafana.example.com"
+# grafana_log_level: info
+
+# --- Optional backup (script + cron) ---
+# deploy_backup_script: true
+# backup_dir: /backup/monitoring
+# backup_retention_days: 7
+# backup_cron_enabled: true
+
+# --- Secrets (use vault, do not commit) ---
+# telegram_bot_token: "{{ vault_telegram_bot_token }}"
+# telegram_chat_id: "{{ vault_telegram_chat_id }}"

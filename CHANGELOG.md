@@ -1,6 +1,36 @@
 # Changelog
 
-All notable changes to Enterprise Monitoring Stack are documented here.
+All notable changes to Monitoring Stack are documented here.
+
+---
+
+## [2.0.0] - 2026-09-30
+
+### Changed
+- Open-sourced full stack: Ansible automation, 7 Grafana dashboards, 20 alert rules, 20 guides
+- Dropped FREE/PRO split — everything is now available in one repository
+- Rewrote README: community-first, clear Quick Start, architecture diagram
+- Updated INSTALLATION_GUIDE to cover both Docker Compose and Ansible paths
+- Replaced commercial docs (PURCHASE, SERVICES, FEATURES comparison) with technical guides
+- Added docs/INDEX.md — full documentation navigation
+
+### Added
+- `ansible/` — Ansible playbook + roles for one-command deployment
+- `grafana-dashboards/json/` — 7 pre-built dashboard JSON files
+- `alerts/alertmanager.example.yml` — alert routing configuration template
+- `scripts/backup-monitoring.sh` — automated backup with optional cron
+- `scripts/fetch-dashboards.sh` — download dashboards from grafana.com
+- `fail2ban/` — fail2ban integration guide
+- docs: ALERTMANAGER, BACKUP, BLACKBOX, DASHBOARD_IMPORT, DEPLOYMENT,
+  FAIL2BAN_ENHANCED, GRAFANA_DASHBOARDS, MONITORING, MULTI_SERVER,
+  NGINX_MONITORING, OPERATIONS, POSTGRESQL_MONITORING, PRODUCTION_CHECKLIST,
+  QUICK_REFERENCE, RABBITMQ_MONITORING, REDIS_MONITORING, RUNBOOK, SECURITY,
+  TROUBLESHOOTING, UPGRADE
+
+### CI
+- Added `concurrency` group (cancel-in-progress on same ref)
+- Added YAML validation job (Ansible configs + alerts)
+- Added ShellCheck job for scripts/
 
 ---
 

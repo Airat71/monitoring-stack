@@ -1,0 +1,74 @@
+# Installation Guide
+
+## Prerequisites
+
+- **Monitoring server:** Docker · Docker Compose · SSH access
+- **Ansible control node:** Ansible 2.9+ · Python 3 · SSH key access to all hosts
+- **Monitored hosts:** Docker or systemd (for Node Exporter)
+
+---
+
+## Option A — Docker Compose (5 minutes)
+
+```bash
+cd prometheus-grafana
+cp .env.example .env
+# set GRAFANA_PASSWORD (and optionally TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
+docker compose up -d
+```
+
+Grafana → http://localhost:3000 (admin / your password)
+
+---
+
+## Option B — Full deploy with Ansible
+
+1. **Copy and edit environment**
+   ```bash
+   cd prometheus-grafana
+   cp .env.example .env
+   # set GRAFANA_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+   ```
+
+2. **Configure inventory**
+   ```bash
+   cp ansible/inventory.example.yml ansible/inventory.yml
+   ```
+   Edit `ansible/inventory.yml`: set `ansible_host` for `monitoring_server` (your monitoring host)
+   and for `monitored_nodes` (hosts that will run Node Exporter). Do not commit `inventory.yml`.
+
+3. **Configure variables**
+   ```bash
+   cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
+   ```
+   Set optional services (`include_postgresql`, `include_redis`, etc.).
+   For automated backups set `deploy_backup_script: true`.
+   Secrets (Telegram token, SMTP) go in Ansible Vault or `.env` on the server — never in `all.yml`.
+
+4. **(Optional) Download dashboards**
+   ```bash
+   ./scripts/fetch-dashboards.sh
+   ```
+   Downloads 7 Grafana dashboards into `grafana-dashboards/json/`. The playbook deploys them automatically.
+
+5. **Run the playbook**
+   ```bash
+   cd ansible && ansible-playbook -i inventory.yml playbook.yml
+   ```
+
+6. **Access**
+   Open an SSH tunnel to reach Grafana from your local machine:
+   ```bash
+   ssh -L 3001:127.0.0.1:3001 user@<monitoring-server>
+   ```
+   Then open http://localhost:3001 (admin / your password).
+
+---
+
+## Next steps
+
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — detailed deployment walkthrough
+- [docs/SECURITY.md](docs/SECURITY.md) — hardening checklist
+- [docs/ALERTMANAGER.md](docs/ALERTMANAGER.md) — configure Telegram/email alerts
+- [docs/MULTI_SERVER.md](docs/MULTI_SERVER.md) — add more hosts
+- [docs/QUICK_REFERENCE.md](docs/QUICK_REFERENCE.md) — command cheat sheet
