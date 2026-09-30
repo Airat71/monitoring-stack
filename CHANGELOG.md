@@ -202,54 +202,20 @@ docker compose pull
 docker compose up -d
 ```
 
-### PRO Version
-```bash
-# Download latest PRO version
-# Extract to your project directory
-
-# Run upgrade playbook
-cd ansible
-ansible-playbook playbooks/upgrade.yml -i inventories/production.ini
-```
-
----
-
-## Deprecation Policy
-
-**Notice Period:** 2 versions (2-3 months)
-**Support:** Previous version supported until next MINOR release
-
-**Example:**
-- v1.0.0 released → v0.9.0 still supported
-- v1.1.0 released → v0.9.0 deprecated, v1.0.0 supported
-- v1.2.0 released → v1.0.0 deprecated, v1.1.0 supported
-
 ---
 
 ## Contributors
 
-This project is maintained by:
-- **Airat** - Lead Developer & DevOps Engineer
-
-Special thanks to:
-- The Prometheus community
-- The Grafana community
-- Early adopters and beta testers
+This project is maintained by [Airat](https://github.com/Airat71).
 
 ---
 
 ## Support
 
-**FREE Version:**
 - GitHub Issues: [Report a bug](https://github.com/Airat71/monitoring-stack/issues)
-- Discussions: [Ask questions](https://github.com/Airat71/monitoring-stack/discussions)
-
-**PRO Version:**
-- Email: airat71@proton.me
-- Priority response: 24-48 hours
-- Direct support included
+- GitHub Discussions: [Ask questions](https://github.com/Airat71/monitoring-stack/discussions)
 
 ---
 
-**Last Updated:** 2026-01-18
-**Latest Version:** 1.0.2
+**Last Updated:** 2026-09-30
+**Latest Version:** 2.0.0
