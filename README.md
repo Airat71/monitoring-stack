@@ -8,6 +8,8 @@ Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanag
 
 One-command deploy, 7 pre-built dashboards, Telegram alerts, multi-server support. Ready in 15 minutes.
 
+![Node Exporter Full dashboard](screenshots/08-node-exporter-full.png)
+
 ---
 
 ## What's included
