@@ -3,16 +3,27 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'screenshots/**'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'screenshots/**'
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
-  validate-compose:
-    name: Validate Docker Compose
+  validate-stack:
+    name: Validate Docker Compose + Prometheus
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +41,7 @@ jobs:
             check config /etc/prometheus/prometheus.yml
 
   validate-yaml:
-    name: Validate YAML (Ansible + alerts)
+    name: YAML lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,13 +77,11 @@ jobs:
           PY
 
   shellcheck:
-    name: ShellCheck (scripts)
+    name: ShellCheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@2.0.0
+      - uses: ludeeus/action-shellcheck@2.0.0
         with:
           scandir: ./scripts
           severity: warning
