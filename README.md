@@ -31,15 +31,15 @@ One-command deploy, 7 pre-built dashboards, Telegram alerts, multi-server suppor
 
 Pre-built Grafana dashboards for immediate visibility:
 
-| Dashboard | What it covers |
-|-----------|----------------|
-| Node Exporter Full | CPU, memory, disk, network per host |
-| Prometheus Overview | Prometheus self-monitoring |
-| Blackbox Exporter | HTTP/TCP endpoint uptime and latency |
-| Nginx | Request rate, error rate, upstreams |
-| PostgreSQL | Connections, locks, query performance |
-| Redis | Memory, ops/sec, key eviction |
-| RabbitMQ | Queue depth, message rate, node health |
+| Dashboard | What it covers | Source |
+|-----------|----------------|--------|
+| Node Exporter Full | CPU, memory, disk, network per host | [grafana.com/dashboards/1860](https://grafana.com/grafana/dashboards/1860) |
+| Prometheus Overview | Prometheus self-monitoring | community |
+| Blackbox Exporter | HTTP/TCP endpoint uptime and latency | [grafana.com/dashboards/7587](https://grafana.com/grafana/dashboards/7587) |
+| Nginx | Request rate, error rate, upstreams | [grafana.com/dashboards/12708](https://grafana.com/grafana/dashboards/12708) |
+| PostgreSQL | Connections, locks, query performance | [grafana.com/dashboards/9628](https://grafana.com/grafana/dashboards/9628) |
+| Redis | Memory, ops/sec, key eviction | [grafana.com/dashboards/11835](https://grafana.com/grafana/dashboards/11835) |
+| RabbitMQ | Queue depth, message rate, node health | [grafana.com/dashboards/10991](https://grafana.com/grafana/dashboards/10991) |
 
 ---
 
