@@ -4,6 +4,25 @@ All notable changes to Monitoring Stack are documented here.
 
 ---
 
+## [2.1.0] - 2026-10-02
+
+### Security
+- Added `security.yml` workflow: TruffleHog `--only-verified` scans full git history on every push and PR (no path filters — secrets scan always runs)
+- Separated secrets scanning from functional CI so it cannot be skipped by docs-only path filters
+
+### CI
+- Split CI into two workflows: `security.yml` (secrets) and `ci.yml` (linting/validation)
+- Added `paths-ignore` to `ci.yml`: docs-only changes no longer trigger stack validation
+- Added `concurrency: cancel-in-progress` to `security.yml`
+- Added `permissions: contents: read` to all workflows (principle of least privilege)
+- Added `release.yml`: auto-creates GitHub Release with generated notes on `v*.*.*` tags
+- Added Dependabot config: weekly updates for GitHub Actions versions
+
+### Changed
+- Dashboard table in README now includes Source column with original grafana.com links and license attribution
+
+---
+
 ## [2.0.0] - 2026-09-30
 
 ### Changed
@@ -217,5 +236,5 @@ This project is maintained by [Airat](https://github.com/Airat71).
 
 ---
 
-**Last Updated:** 2026-09-30
-**Latest Version:** 2.0.0
+**Last Updated:** 2026-10-02
+**Latest Version:** 2.1.0
