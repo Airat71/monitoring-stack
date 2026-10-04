@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   validate-stack:
-    name: Validate Docker Compose + Prometheus
+    name: Validate (Docker Compose)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -31,13 +31,16 @@ jobs:
       - name: Validate Docker Compose config
         run: docker compose config --quiet
         working-directory: prometheus-grafana
+        env:
+          # Parse-only value. The published stack still refuses to start without a real password.
+          GRAFANA_PASSWORD: ci-validation-only
 
       - name: Validate Prometheus config and alert rules
         run: |
           docker run --rm --entrypoint promtool \
             -v "$PWD/prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
             -v "$PWD/prometheus-grafana/alerts.yml:/etc/prometheus/alerts.yml:ro" \
-            prom/prometheus:latest \
+            prom/prometheus:v3.14.0 \
             check config /etc/prometheus/prometheus.yml
 
   validate-yaml:

@@ -1,5 +1,5 @@
-# Alertmanager — PRO example (Telegram + Email)
-# Replace telegram bot token and SMTP with your values (vault or .env)
+# Alertmanager. Telegram is included only when telegram_bot_token and telegram_chat_id are set.
+# chat_id must be a number.
 
 global:
   resolve_timeout: 5m
@@ -14,29 +14,25 @@ route:
     - match:
         severity: critical
       receiver: 'critical'
+{% if telegram_bot_token is defined and telegram_chat_id is defined %}
       continue: true
     - match_re:
         severity: warning|critical
       receiver: 'telegram'
+{% endif %}
 
 receivers:
   - name: 'default'
-    # optional: add email_configs here
 
   - name: 'critical'
-    # email_configs:
-    #   - to: 'admin@example.com'
-    #     from: 'alertmanager@example.com'
-    #     smarthost: 'smtp.example.com:587'
-    #     auth_username: '...'
-    #     auth_password: '...'
+{% if telegram_bot_token is defined and telegram_chat_id is defined %}
 
   - name: 'telegram'
     telegram_configs:
-      - bot_token: '{{ telegram_bot_token | default("YOUR_BOT_TOKEN") }}'
-        chat_id: '{{ telegram_chat_id | default("YOUR_CHAT_ID") }}'
+      - bot_token: '{{ telegram_bot_token }}'
+        chat_id: {{ telegram_chat_id }}
         parse_mode: 'HTML'
-        message: '{{ template "telegram.default" . }}'
+{% endif %}
 
 inhibit_rules:
   - source_match:

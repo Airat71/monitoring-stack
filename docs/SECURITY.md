@@ -1,10 +1,10 @@
-# SECURITY — Best practices (PRO)
+# SECURITY — Best practices
 
 ## Binding and access
 
-- **Localhost-only:** Prometheus, Grafana, Alertmanager and Blackbox are bound to `127.0.0.1` in the PRO docker-compose. Do not expose them directly to the internet.
-- **Access from outside:** Use **SSH tunnel** (see SSH_TUNNEL_ACCESS.md). Example: `ssh -L 3001:127.0.0.1:3001 user@monitoring-server`.
-- **Grafana:** Change default admin password; use strong `GRAFANA_PASSWORD` in `.env`. Enable HTTPS if you put a reverse proxy in front.
+- **Localhost-only:** Prometheus, Grafana, Alertmanager and Blackbox are bound to `127.0.0.1` in `prometheus-grafana/docker-compose.yml`. Do not expose them directly to the internet.
+- **Access from outside:** Open an SSH tunnel. Example: `ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@monitoring-server`.
+- **Grafana:** The stack does not start without `GRAFANA_PASSWORD` in `.env`. Do not use `admin` or any password from an example. Enable HTTPS if you put a reverse proxy in front.
 
 ## Secrets
 
@@ -19,4 +19,4 @@
 
 ## fail2ban
 
-- PRO includes optional fail2ban monitoring. Ensure fail2ban is configured with sensible bantime and findtime; see FAIL2BAN_ENHANCED.md.
+- fail2ban monitoring is optional. Ensure fail2ban is configured with sensible bantime and findtime; see FAIL2BAN_ENHANCED.md.

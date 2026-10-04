@@ -4,11 +4,11 @@
 
 - [x] Prometheus + Grafana + Alertmanager + Node Exporter (Docker Compose)
 - [x] Blackbox Exporter — HTTP/TCP endpoint probes
-- [x] fail2ban integration — ban events in Grafana
+- [x] fail2ban alert rule (`Fail2banHighAttackRate`); exporter is installed separately
 - [x] Ansible automation — one-command full deployment
 - [x] Node Exporter on multiple hosts via Ansible
-- [x] 7 pre-built Grafana dashboards (Node Exporter, Prometheus, Blackbox, Nginx, PostgreSQL, Redis, RabbitMQ)
-- [x] 20 production-ready alert rules
+- [x] 8 pre-built Grafana dashboards (Node Exporter, Prometheus, Blackbox, System Overview, Nginx, PostgreSQL, Redis, RabbitMQ)
+- [x] 16 alert rules (names in docs/MONITORING.md)
 - [x] Telegram + email alert routing
 - [x] Automated backup script
 - [x] 20 guides (deployment, security, operations, multi-server, runbook, troubleshooting)

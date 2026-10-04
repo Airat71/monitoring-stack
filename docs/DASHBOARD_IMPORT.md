@@ -1,4 +1,4 @@
-# Импорт дашбордов с Grafana.com (PRO)
+# Импорт дашбордов с Grafana.com
 
 Чтобы в папке `grafana/provisioning/dashboards/json` появились готовые дашборды без ручного экспорта, можно скачать JSON по ID с Grafana.com.
 

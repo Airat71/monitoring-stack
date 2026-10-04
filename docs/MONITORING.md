@@ -1,8 +1,8 @@
-# MONITORING — Alerts and configuration (PRO)
+# MONITORING — Alerts and configuration
 
 ## Alert rules
 
-PRO ships with **20 alert rules** in `alerts-product.yml`:
+The stack ships these alert rules in `prometheus-grafana/alerts.yml`:
 
 - **Instance/Service:** InstanceDown, ServiceDown
 - **Resources:** HighCPUUsage, HighCPUUsageCritical, HighMemoryUsage, DiskSpaceLow, DiskSpaceCritical, HighLoadAverage, FilesystemReadonly
@@ -19,7 +19,7 @@ PRO ships with **20 alert rules** in `alerts-product.yml`:
 
 ## Adding a custom alert
 
-1. Edit `alerts-product.yml` (or your copy).
+1. Edit `prometheus-grafana/alerts.yml` (or the copy Ansible places next to `prometheus.yml`).
 2. Add a new rule under the appropriate group (or create a new group).
 3. Reload Prometheus: `curl -X POST http://127.0.0.1:9090/-/reload`.
 4. Optionally add a runbook URL in the rule's annotations.

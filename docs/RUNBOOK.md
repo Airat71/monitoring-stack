@@ -1,4 +1,4 @@
-# Runbook — Alert response (PRO)
+# Runbook — Alert response
 
 | Alert | What to check | Action |
 |-------|----------------|--------|

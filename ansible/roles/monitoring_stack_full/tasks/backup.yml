@@ -15,7 +15,7 @@
 
 - name: Ensure backup cron job (daily 02:00)
   ansible.builtin.cron:
-    name: "PRO monitoring backup"
+    name: "monitoring backup"
     minute: "0"
     hour: "2"
     job: "MONITORING_DIR={{ monitoring_base_dir }} BACKUP_DIR={{ backup_dir | default('/backup/monitoring') }} RETENTION_DAYS={{ backup_retention_days | default(7) }} {{ monitoring_base_dir }}/scripts/backup-monitoring.sh"

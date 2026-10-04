@@ -1,5 +1,5 @@
 ---
-# PRO: deploy full monitoring stack (Prometheus, Grafana, Alertmanager, Node Exporter, Blackbox)
+# Deploy the monitoring stack (Prometheus, Grafana, Alertmanager, Node Exporter, Blackbox)
 # Assumes Docker and Docker Compose are installed (add a role or pre-requisite if needed)
 
 - name: Create monitoring directories
@@ -41,7 +41,7 @@
     mode: "0644"
   when: dashboard_json_dir_stat.stat.exists | default(false)
 
-- name: Copy docker-compose for PRO stack
+- name: Copy docker-compose for the monitoring stack
   ansible.builtin.template:
     src: docker-compose.pro.yml.j2
     dest: "{{ monitoring_base_dir }}/docker-compose.yml"
@@ -53,10 +53,16 @@
     dest: "{{ monitoring_base_dir }}/prometheus.yml"
     mode: "0644"
 
-- name: Copy alert rules (PRO 20 alerts)
+- name: Copy alert rules
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../alerts/alerts-product.yml"
+    src: "{{ playbook_dir }}/../prometheus-grafana/alerts.yml"
     dest: "{{ monitoring_base_dir }}/alerts.yml"
+    mode: "0644"
+
+- name: Copy Blackbox config
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../prometheus-grafana/blackbox.yml"
+    dest: "{{ monitoring_base_dir }}/blackbox.yml"
     mode: "0644"
 
 - name: Copy Alertmanager config
@@ -67,31 +73,46 @@
   when: deploy_alertmanager | default(true) | bool
 
 - name: Validate Prometheus config (promtool)
-  ansible.builtin.shell: |
-    docker run --rm -v {{ monitoring_base_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
-      {{ prometheus_image | default('prom/prometheus:v2.47.2') }} \
-      promtool check config /etc/prometheus/prometheus.yml
-  args:
-    chdir: "{{ monitoring_base_dir }}"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - --rm
+      - --entrypoint
+      - promtool
+      - -v
+      - "{{ monitoring_base_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - -v
+      - "{{ monitoring_base_dir }}/alerts.yml:/etc/prometheus/alerts.yml:ro"
+      - "{{ prometheus_image | default('prom/prometheus:v3.14.0') }}"
+      - check
+      - config
+      - /etc/prometheus/prometheus.yml
   register: promtool_config
   changed_when: false
   failed_when: promtool_config.rc != 0
 
 - name: Validate Prometheus alert rules (promtool)
-  ansible.builtin.shell: |
-    docker run --rm -v {{ monitoring_base_dir }}/alerts.yml:/etc/prometheus/alerts.yml:ro \
-      -v {{ monitoring_base_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro \
-      {{ prometheus_image | default('prom/prometheus:v2.47.2') }} \
-      promtool check rules /etc/prometheus/alerts.yml
-  args:
-    chdir: "{{ monitoring_base_dir }}"
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - --rm
+      - --entrypoint
+      - promtool
+      - -v
+      - "{{ monitoring_base_dir }}/alerts.yml:/etc/prometheus/alerts.yml:ro"
+      - "{{ prometheus_image | default('prom/prometheus:v3.14.0') }}"
+      - check
+      - rules
+      - /etc/prometheus/alerts.yml
   register: promtool_rules
   changed_when: false
   failed_when: promtool_rules.rc != 0
 
 - name: Ensure .env exists from example
   ansible.builtin.copy:
-    src: "{{ playbook_dir }}/../prometheus-grafana-pro/.env.example"
+    src: "{{ playbook_dir }}/../prometheus-grafana/.env.example"
     dest: "{{ monitoring_base_dir }}/.env"
     mode: "0600"
     force: false

@@ -1,4 +1,4 @@
-# BACKUP — Automated backups (PRO)
+# BACKUP — Automated backups
 
 ## What to back up
 
@@ -8,7 +8,7 @@
 
 ## Script and Ansible
 
-PRO includes **`scripts/backup-monitoring.sh`**. It backs up Prometheus TSDB, Grafana data, and configs into a timestamped dir; rotates by `RETENTION_DAYS` (default 7).
+**`scripts/backup-monitoring.sh`** backs up Prometheus TSDB, Grafana data, and configs into a timestamped dir and rotates by `RETENTION_DAYS` (default 7).
 
 **Deploy via Ansible:** in `group_vars/all.yml` set:
 ```yaml

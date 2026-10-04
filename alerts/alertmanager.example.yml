@@ -1,5 +1,5 @@
-# Alertmanager — example (PRO)
-# Copy to alertmanager.yml and set your Telegram/SMTP. Use Ansible vault for token/chat_id.
+# Copy over prometheus-grafana/alertmanager.yml after you replace the token and chat_id.
+# chat_id is a number. A quoted string fails Alertmanager config validation.
 
 global:
   resolve_timeout: 5m
@@ -14,6 +14,7 @@ route:
     - match:
         severity: critical
       receiver: 'critical'
+      continue: true
     - match_re:
         severity: warning|critical
       receiver: 'telegram'
@@ -32,7 +33,7 @@ receivers:
   - name: 'telegram'
     telegram_configs:
       - bot_token: 'YOUR_BOT_TOKEN'
-        chat_id: 'YOUR_CHAT_ID'
+        chat_id: 1
         parse_mode: 'HTML'
 
 inhibit_rules:

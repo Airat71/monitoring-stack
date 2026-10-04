@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# PRO: backup Prometheus data, Grafana data, and configs.
+# Backup Prometheus data, Grafana data, and configs.
 # Deploy to server and run via cron (e.g. daily).
 # Configure: BACKUP_DIR, RETENTION_DAYS; MONITORING_DIR = path where docker-compose.yml lives.
 

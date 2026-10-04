@@ -4,6 +4,23 @@ All notable changes to Monitoring Stack are documented here.
 
 ---
 
+## [2.2.0] - 2026-10-04
+
+### Fixed
+- `docker compose up` in `prometheus-grafana/` starts the full stack: Prometheus, Grafana, Alertmanager, Node Exporter, and Blackbox. Grafana stays on host port 3001.
+- Alert rules live in `prometheus-grafana/alerts.yml` (the names listed in `docs/MONITORING.md`). Ansible copies that file.
+- Ansible reads `.env.example` from `prometheus-grafana/` and checks Prometheus config with `promtool --entrypoint`.
+- Alertmanager starts without a Telegram token. The Telegram example uses a numeric `chat_id`.
+- `docs/QUICK_START.md` uses Grafana port 3001.
+- Provisioned dashboards use the Prometheus datasource uid `prometheus`.
+
+### Security
+- Compose does not start unless `GRAFANA_PASSWORD` is set. There is no default password.
+- Image tags are pinned to current stable releases: Prometheus 3.14.0, Grafana 13.2.3, Alertmanager 0.34.1, Node Exporter 1.12.1, Blackbox Exporter 0.28.0.
+- Published dashboard files cannot be overwritten from the Grafana UI.
+
+---
+
 ## [2.1.0] - 2026-10-02
 
 ### Security

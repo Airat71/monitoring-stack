@@ -1,17 +1,17 @@
-# PRO group_vars (copy to group_vars/all.yml). Secrets → Ansible Vault or .env on server.
+# Copy to group_vars/all.yml. Secrets → Ansible Vault. Do not commit all.yml.
 
-# --- Optional services (universal, no Taiga/n8n) ---
+# --- Optional exporters ---
 include_nginx: false
 include_postgresql: false
 include_redis: false
 include_rabbitmq: false
 
 # --- Pinned images (production: reproducible builds) ---
-# prometheus_image: prom/prometheus:v2.47.2
-# grafana_image: grafana/grafana:10.2.2
-# alertmanager_image: prom/alertmanager:v0.26.0
-# node_exporter_image: prom/node-exporter:v1.7.0
-# blackbox_image: prom/blackbox-exporter:v0.24.0
+# prometheus_image: prom/prometheus:v3.14.0
+# grafana_image: grafana/grafana:13.2.3
+# alertmanager_image: prom/alertmanager:v0.34.1
+# node_exporter_image: prom/node-exporter:v1.12.1
+# blackbox_image: prom/blackbox-exporter:v0.28.0
 
 # --- Resources (tune for your host) ---
 # prometheus_memory_limit: 1024M
@@ -30,5 +30,6 @@ include_rabbitmq: false
 # backup_cron_enabled: true
 
 # --- Secrets (use vault, do not commit) ---
+# Telegram is optional. chat_id must be a number. Leave both unset to start Alertmanager without Telegram.
 # telegram_bot_token: "{{ vault_telegram_bot_token }}"
-# telegram_chat_id: "{{ vault_telegram_chat_id }}"
+# telegram_chat_id: 1
