@@ -31,6 +31,9 @@ jobs:
       - name: Validate Docker Compose config
         run: docker compose config --quiet
         working-directory: prometheus-grafana
+        env:
+          # Parse-only value. The published stack still refuses to start without a real password.
+          GRAFANA_PASSWORD: ci-validation-only
 
       - name: Validate Prometheus config and alert rules
         run: |
