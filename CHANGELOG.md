@@ -4,6 +4,16 @@ All notable changes to Monitoring Stack are documented here.
 
 ---
 
+## [Unreleased]
+
+### Changed
+- Replaced imported Grafana.com dashboards with eight original dashboards in `grafana-dashboards/json/`. Panels are `gauge`, `stat`, and `timeseries`.
+- `scripts/fetch-dashboards.sh` rebuilds those files from `scripts/build-dashboards.py` and no longer downloads JSON.
+- README no longer says fail2ban ban events are visible in Grafana. The alert rule remains; the exporter is separate.
+- `HighLoadAverage` now matches `node_load1` to the CPU count on `instance`. Extra target labels such as `hostname` no longer drop the series.
+
+---
+
 ## [2.2.0] - 2026-10-04
 
 ### Fixed

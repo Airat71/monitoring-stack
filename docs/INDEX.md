@@ -8,8 +8,8 @@
 
 ## Configuration
 - [ALERTMANAGER.md](ALERTMANAGER.md) — Telegram/email routing, silences
-- [GRAFANA_DASHBOARDS.md](GRAFANA_DASHBOARDS.md) — import and manage dashboards
-- [DASHBOARD_IMPORT.md](DASHBOARD_IMPORT.md) — step-by-step dashboard import
+- [GRAFANA_DASHBOARDS.md](GRAFANA_DASHBOARDS.md) — the eight shipped dashboards
+- [DASHBOARD_IMPORT.md](DASHBOARD_IMPORT.md) — where the JSON lives and how Grafana loads it
 - [MONITORING.md](MONITORING.md) — what is monitored and how
 
 ## Multi-server

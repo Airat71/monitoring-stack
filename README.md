@@ -7,9 +7,7 @@
 
 Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanager · Ansible · fail2ban.
 
-One-command deploy, 8 pre-built dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
-
-![Node Exporter Full dashboard](screenshots/08-node-exporter-full.png)
+One-command deploy, 8 original dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
 
 ---
 
@@ -18,9 +16,9 @@ One-command deploy, 8 pre-built dashboards, optional Telegram alerts, multi-serv
 | Component | Details |
 |-----------|---------|
 | **Core stack** | Prometheus · Grafana · Alertmanager · Node Exporter · Blackbox Exporter |
-| **Security** | fail2ban integration — ban events visible in Grafana |
+| **Security** | fail2ban alert rule; the exporter is installed separately |
 | **Ansible automation** | One-command full deployment + Node Exporter on remote hosts |
-| **Dashboards** | 8 pre-built JSON dashboards (see below) |
+| **Dashboards** | 8 original JSON dashboards (see below) |
 | **Alerts** | 16 alert rules (see docs/MONITORING.md) |
 | **Multi-server** | Monitor N servers from one Grafana instance |
 | **Backups** | Automated backup script with optional cron |
@@ -30,18 +28,18 @@ One-command deploy, 8 pre-built dashboards, optional Telegram alerts, multi-serv
 
 ## Dashboards
 
-Pre-built Grafana dashboards for immediate visibility:
+Original Grafana dashboards in this repository, MIT licensed, datasource uid `prometheus`:
 
-| Dashboard | What it covers | Source |
-|-----------|----------------|--------|
-| Node Exporter Full | CPU, memory, disk, network per host | [grafana.com/dashboards/1860](https://grafana.com/grafana/dashboards/1860) |
-| Prometheus Overview | Prometheus self-monitoring | community |
-| Blackbox Exporter | HTTP/TCP endpoint uptime and latency | [grafana.com/dashboards/7587](https://grafana.com/grafana/dashboards/7587) |
-| Nginx | Request rate, error rate, upstreams | [grafana.com/dashboards/12708](https://grafana.com/grafana/dashboards/12708) |
-| PostgreSQL | Connections, locks, query performance | [grafana.com/dashboards/9628](https://grafana.com/grafana/dashboards/9628) |
-| Redis | Memory, ops/sec, key eviction | [grafana.com/dashboards/11835](https://grafana.com/grafana/dashboards/11835) |
-| RabbitMQ | Queue depth, message rate, node health | [grafana.com/dashboards/10991](https://grafana.com/grafana/dashboards/10991) |
-| System Overview | CPU, memory, and disk summary for this host | this repository |
+| Dashboard | What it covers | File |
+|-----------|----------------|------|
+| Host | CPU, memory, disk, network per host | `grafana-dashboards/json/host.json` |
+| System Overview | CPU, memory, disk, load, and uptime | `grafana-dashboards/json/system-overview.json` |
+| Prometheus | Reload, Alertmanager link, scrape duration, TSDB | `grafana-dashboards/json/prometheus.json` |
+| Blackbox | Probe success, HTTP status, duration, certificate expiry | `grafana-dashboards/json/blackbox.json` |
+| Nginx | Connections and request rate (empty until job `nginx`) | `grafana-dashboards/json/nginx.json` |
+| PostgreSQL | Sessions, transactions, size (empty until job `postgresql`) | `grafana-dashboards/json/postgresql.json` |
+| Redis | Memory, hit ratio, commands (empty until job `redis`) | `grafana-dashboards/json/redis.json` |
+| RabbitMQ | Connections and queues (empty until job `rabbitmq`) | `grafana-dashboards/json/rabbitmq.json` |
 
 ---
 
@@ -140,9 +138,9 @@ Full index: [docs/INDEX.md](docs/INDEX.md)
 monitoring-stack/
 ├── prometheus-grafana/     # Docker Compose stack (Prometheus, Grafana, Alertmanager, Blackbox)
 ├── ansible/                # Playbook + roles for full automated deployment
-├── grafana-dashboards/     # Pre-built dashboard JSON files
+├── grafana-dashboards/     # Original dashboard JSON files
 ├── alerts/                 # Alertmanager routing config example
-├── scripts/                # Backup and dashboard fetch scripts
+├── scripts/                # Backup and dashboard builder
 ├── fail2ban/               # fail2ban integration guide
 ├── docs/                   # 20 guides
 └── INSTALLATION_GUIDE.md   # Getting started

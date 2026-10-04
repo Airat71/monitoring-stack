@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "nginx-prometheus-exporter metrics. Stays empty until a scrape job named nginx exists.",
+  "description": "HTTP probe success, status, duration, and certificate expiry. Job name: blackbox.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Empty until a scrape job named nginx is added.",
+      "description": "1 is up. Matches alert BlackboxProbeFailed.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -65,12 +65,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_up{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "probe_success{job=\"blackbox\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Exporter up",
+      "title": "Probe success",
       "type": "stat"
     },
     {
@@ -78,7 +78,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "nginx_connections_active from nginx-prometheus-exporter.",
+      "description": "HTTP status from the http_2xx module.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -93,7 +93,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -125,12 +125,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_active{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "probe_http_status_code{job=\"blackbox\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Active connections",
+      "title": "HTTP status",
       "type": "stat"
     },
     {
@@ -138,7 +138,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Request rate.",
+      "description": "End-to-end probe duration.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -168,7 +168,7 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -200,12 +200,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(nginx_http_requests_total{job=\"nginx\",instance=~\"$instance\"}[5m])",
+          "expr": "probe_duration_seconds{job=\"blackbox\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Requests",
+      "title": "Probe duration",
       "type": "timeseries"
     },
     {
@@ -213,7 +213,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Reading, writing, and waiting connections.",
+      "description": "Days until the earliest certificate expires. Empty when the probe is not HTTPS.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -243,7 +243,7 @@
               }
             ]
           },
-          "unit": "short"
+          "unit": "d"
         },
         "overrides": []
       },
@@ -275,32 +275,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_reading{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} reading",
+          "expr": "(probe_ssl_earliest_cert_expiry{job=\"blackbox\",instance=~\"$instance\"} - time()) / 86400",
+          "legendFormat": "{{instance}}",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "nginx_connections_writing{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} writing",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "nginx_connections_waiting{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} waiting",
-          "refId": "C"
         }
       ],
-      "title": "Connection states",
+      "title": "Certificate expiry",
       "type": "timeseries"
     }
   ],
@@ -308,7 +288,7 @@
   "schemaVersion": 39,
   "tags": [
     "monitoring",
-    "nginx"
+    "blackbox"
   ],
   "templating": {
     "list": [
@@ -323,15 +303,15 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nginx_up{job=\"nginx\"}, instance)",
+        "definition": "label_values(probe_success{job=\"blackbox\"}, instance)",
         "hide": 0,
         "includeAll": true,
-        "label": "Instance",
+        "label": "Target",
         "multi": true,
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(nginx_up{job=\"nginx\"}, instance)",
+          "query": "label_values(probe_success{job=\"blackbox\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -347,7 +327,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Nginx",
-  "uid": "ms-nginx",
+  "title": "Blackbox",
+  "uid": "ms-blackbox",
   "version": 1
 }

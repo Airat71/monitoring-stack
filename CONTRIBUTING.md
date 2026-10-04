@@ -40,12 +40,14 @@ The security scan has no `paths-ignore` — it runs on every change without exce
 
 ```bash
 # Validate Docker Compose config
-docker compose -f prometheus-grafana/docker-compose.yml config -q
+GRAFANA_PASSWORD=local-check docker compose -f prometheus-grafana/docker-compose.yml config -q
 
 # Validate Prometheus config and alert rules
-docker run --rm -v "$(pwd)/prometheus-grafana/prometheus:/prometheus" \
-  --entrypoint promtool prom/prometheus:latest \
-  check config /prometheus/prometheus.yml
+docker run --rm --entrypoint promtool \
+  -v "$(pwd)/prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
+  -v "$(pwd)/prometheus-grafana/alerts.yml:/etc/prometheus/alerts.yml:ro" \
+  prom/prometheus:v3.14.0 \
+  check config /etc/prometheus/prometheus.yml
 
 # YAML lint (Ansible)
 cd ansible && yamllint .

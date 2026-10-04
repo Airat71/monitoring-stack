@@ -35,6 +35,11 @@ jobs:
           # Parse-only value. The published stack still refuses to start without a real password.
           GRAFANA_PASSWORD: ci-validation-only
 
+      - name: Check shipped dashboards match the builder
+        run: |
+          python3 scripts/build-dashboards.py
+          git diff --exit-code -- grafana-dashboards/json
+
       - name: Validate Prometheus config and alert rules
         run: |
           docker run --rm --entrypoint promtool \

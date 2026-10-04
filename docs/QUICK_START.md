@@ -110,7 +110,7 @@ curl http://localhost:9093/api/v1/alerts  # check Alertmanager
 - [docs/DEPLOYMENT.md](DEPLOYMENT.md) — production deployment guide
 - [docs/MULTI_SERVER.md](MULTI_SERVER.md) — monitor multiple servers
 - [docs/ALERTMANAGER.md](ALERTMANAGER.md) — configure Telegram/email alerts
-- [docs/GRAFANA_DASHBOARDS.md](GRAFANA_DASHBOARDS.md) — import pre-built dashboards
+- [docs/GRAFANA_DASHBOARDS.md](GRAFANA_DASHBOARDS.md) — the eight shipped dashboards
 - [docs/SECURITY.md](SECURITY.md) — hardening checklist
 
 ---
