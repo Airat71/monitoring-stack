@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   validate-stack:
-    name: Validate Docker Compose + Prometheus
+    name: Validate (Docker Compose)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
