@@ -28,18 +28,18 @@ One-command deploy, 8 original dashboards, optional Telegram alerts, multi-serve
 
 ## Dashboards
 
-Original Grafana dashboards in this repository, MIT licensed, datasource uid `prometheus`:
+8 original dashboards — written for this stack, current panel types, render on Grafana 13 without additional configuration. MIT licensed, datasource uid `prometheus`.
 
-| Dashboard | What it covers | File |
-|-----------|----------------|------|
-| Host | CPU, memory, disk, network per host | `grafana-dashboards/json/host.json` |
-| System Overview | CPU, memory, disk, load, and uptime | `grafana-dashboards/json/system-overview.json` |
-| Prometheus | Reload, Alertmanager link, scrape duration, TSDB | `grafana-dashboards/json/prometheus.json` |
-| Blackbox | Probe success, HTTP status, duration, certificate expiry | `grafana-dashboards/json/blackbox.json` |
-| Nginx | Connections and request rate (empty until job `nginx`) | `grafana-dashboards/json/nginx.json` |
-| PostgreSQL | Sessions, transactions, size (empty until job `postgresql`) | `grafana-dashboards/json/postgresql.json` |
-| Redis | Memory, hit ratio, commands (empty until job `redis`) | `grafana-dashboards/json/redis.json` |
-| RabbitMQ | Connections and queues (empty until job `rabbitmq`) | `grafana-dashboards/json/rabbitmq.json` |
+| Dashboard | What it covers | After `docker compose up` |
+|-----------|----------------|--------------------------|
+| Host | CPU, memory, disk, network per host | Live |
+| System Overview | CPU, memory, disk, load, uptime | Live |
+| Prometheus | Scrape duration, TSDB, Alertmanager link | Live |
+| Blackbox | Probe success, HTTP status, TLS expiry | Live |
+| Nginx | Connections, request rate, error rate | Empty until exporter with job `nginx` |
+| PostgreSQL | Sessions, transactions, database size | Empty until exporter with job `postgresql` |
+| Redis | Memory, hit ratio, commands/sec | Empty until exporter with job `redis` |
+| RabbitMQ | Connections, queues, message rate | Empty until exporter with job `rabbitmq` |
 
 ---
 
@@ -157,6 +157,8 @@ PRs and issues are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
 ## License
 
 [MIT](LICENSE.md) — free for personal and commercial use.
+
+The dashboard JSON files in `grafana-dashboards/json/` are original works included in this repository and covered by the same MIT license.
 
 ---
 
