@@ -51,7 +51,7 @@ git clone https://github.com/Airat71/monitoring-stack.git
 cd monitoring-stack/prometheus-grafana
 cp .env.example .env          # set GRAFANA_PASSWORD
 docker compose up -d
-# Grafana → http://localhost:3000  (admin / your password)
+# Grafana → http://localhost:3001  (admin / your password)
 ```
 
 ---

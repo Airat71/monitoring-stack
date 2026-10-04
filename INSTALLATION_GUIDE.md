@@ -17,7 +17,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-Grafana → http://localhost:3000 (admin / your password)
+Grafana → http://localhost:3001 (admin / your password)
 
 ---
 
