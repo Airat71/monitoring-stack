@@ -1,4 +1,4 @@
-# TROUBLESHOOTING — PRO
+# TROUBLESHOOTING
 
 ## InstanceDown
 

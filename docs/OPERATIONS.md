@@ -1,4 +1,4 @@
-# OPERATIONS — Daily runbook (PRO)
+# OPERATIONS — Daily runbook
 
 ## Daily checks
 
@@ -8,7 +8,7 @@
 
 ## Health and readiness
 
-- All stack containers have **healthchecks** (Prometheus `/-/healthy`, Grafana `/api/health`, Alertmanager `/-/healthy`, Node Exporter and Blackbox metrics endpoint). Grafana starts only after Prometheus is healthy (`depends_on: condition: service_healthy`).
+- Prometheus, Grafana, and Alertmanager healthchecks call their HTTP endpoints. Node Exporter and Blackbox images contain only the exporter binary, so their healthchecks run `--version`. Grafana starts only after Prometheus is healthy (`depends_on: condition: service_healthy`).
 - Check container health: `docker compose ps` (state should be "Up (healthy)" where applicable).
 
 ## Common tasks
@@ -32,7 +32,7 @@ curl -X POST http://127.0.0.1:9090/-/reload
 
 1. Add the host to Ansible inventory under `monitored_nodes` with `ansible_host`.
 2. Run playbook: `ansible-playbook -i inventory.yml playbook.yml`.
-3. Prometheus will scrape the new node-exporter; no need to edit prometheus.yml by hand if using the PRO template.
+3. Prometheus will scrape the new node-exporter. Re-run the playbook instead of editing prometheus.yml by hand.
 
 ### View logs
 

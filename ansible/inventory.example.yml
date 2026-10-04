@@ -1,4 +1,4 @@
-# PRO — example inventory (copy to inventory.yml and set your ansible_host IPs)
+# Example inventory. Copy to inventory.yml and set ansible_host. Do not commit inventory.yml.
 # Do not commit inventory.yml if it contains real hostnames/IPs.
 
 all:

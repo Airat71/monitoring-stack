@@ -1,0 +1,23 @@
+# Alertmanager starts with this file. No Telegram token is required.
+# To send alerts to Telegram, copy alerts/alertmanager.example.yml over this file
+# and set bot_token plus a numeric chat_id, then: docker compose up -d alertmanager
+
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default'
+
+receivers:
+  - name: 'default'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']

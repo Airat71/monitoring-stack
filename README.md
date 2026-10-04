@@ -7,7 +7,7 @@
 
 Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanager · Ansible · fail2ban.
 
-One-command deploy, 7 pre-built dashboards, Telegram alerts, multi-server support. Ready in 15 minutes.
+One-command deploy, 8 pre-built dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
 
 ![Node Exporter Full dashboard](screenshots/08-node-exporter-full.png)
 
@@ -20,8 +20,8 @@ One-command deploy, 7 pre-built dashboards, Telegram alerts, multi-server suppor
 | **Core stack** | Prometheus · Grafana · Alertmanager · Node Exporter · Blackbox Exporter |
 | **Security** | fail2ban integration — ban events visible in Grafana |
 | **Ansible automation** | One-command full deployment + Node Exporter on remote hosts |
-| **Dashboards** | 7 pre-built JSON dashboards (see below) |
-| **Alerts** | 20 production-ready alert rules |
+| **Dashboards** | 8 pre-built JSON dashboards (see below) |
+| **Alerts** | 16 alert rules (see docs/MONITORING.md) |
 | **Multi-server** | Monitor N servers from one Grafana instance |
 | **Backups** | Automated backup script with optional cron |
 | **Documentation** | 20 guides: deployment, security, operations, runbook, troubleshooting |
@@ -41,6 +41,7 @@ Pre-built Grafana dashboards for immediate visibility:
 | PostgreSQL | Connections, locks, query performance | [grafana.com/dashboards/9628](https://grafana.com/grafana/dashboards/9628) |
 | Redis | Memory, ops/sec, key eviction | [grafana.com/dashboards/11835](https://grafana.com/grafana/dashboards/11835) |
 | RabbitMQ | Queue depth, message rate, node health | [grafana.com/dashboards/10991](https://grafana.com/grafana/dashboards/10991) |
+| System Overview | CPU, memory, and disk summary for this host | this repository |
 
 ---
 
@@ -49,9 +50,11 @@ Pre-built Grafana dashboards for immediate visibility:
 ```bash
 git clone https://github.com/Airat71/monitoring-stack.git
 cd monitoring-stack/prometheus-grafana
-cp .env.example .env          # set GRAFANA_PASSWORD
+cp .env.example .env          # set GRAFANA_PASSWORD (required)
 docker compose up -d
 # Grafana → http://localhost:3001  (admin / your password)
+# Prometheus → http://localhost:9090
+# Alertmanager → http://localhost:9093
 ```
 
 ---
@@ -89,7 +92,7 @@ Step-by-step: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
 
 ## Alerts
 
-20 alert rules covering:
+16 alert rules covering:
 
 - Host down / unreachable
 - CPU · memory · disk thresholds

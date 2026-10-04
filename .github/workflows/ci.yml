@@ -37,7 +37,7 @@ jobs:
           docker run --rm --entrypoint promtool \
             -v "$PWD/prometheus-grafana/prometheus.yml:/etc/prometheus/prometheus.yml:ro" \
             -v "$PWD/prometheus-grafana/alerts.yml:/etc/prometheus/alerts.yml:ro" \
-            prom/prometheus:latest \
+            prom/prometheus:v3.14.0 \
             check config /etc/prometheus/prometheus.yml
 
   validate-yaml:

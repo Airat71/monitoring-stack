@@ -13,11 +13,15 @@
 ```bash
 cd prometheus-grafana
 cp .env.example .env
-# set GRAFANA_PASSWORD (and optionally TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)
+# set GRAFANA_PASSWORD — compose will not start while it is empty
 docker compose up -d
 ```
 
 Grafana → http://localhost:3001 (admin / your password)
+Prometheus → http://localhost:9090
+Alertmanager → http://localhost:9093
+
+Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-grafana/alertmanager.yml`, set `bot_token` and a numeric `chat_id`, then `docker compose up -d alertmanager`.
 
 ---
 
@@ -27,7 +31,7 @@ Grafana → http://localhost:3001 (admin / your password)
    ```bash
    cd prometheus-grafana
    cp .env.example .env
-   # set GRAFANA_PASSWORD, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+   # set GRAFANA_PASSWORD
    ```
 
 2. **Configure inventory**
@@ -43,7 +47,7 @@ Grafana → http://localhost:3001 (admin / your password)
    ```
    Set optional services (`include_postgresql`, `include_redis`, etc.).
    For automated backups set `deploy_backup_script: true`.
-   Secrets (Telegram token, SMTP) go in Ansible Vault or `.env` on the server — never in `all.yml`.
+   Telegram is optional. Set `telegram_bot_token` and numeric `telegram_chat_id` in Ansible Vault. Leave them unset to start Alertmanager without Telegram. Never commit `all.yml`.
 
 4. **(Optional) Download dashboards**
    ```bash

@@ -1,5 +1,5 @@
 ---
-# PRO: deploy monitoring stack (monitoring server) + Node Exporter (monitored nodes)
+# Deploy the monitoring stack on the monitoring server and Node Exporter on monitored nodes
 # Usage: ansible-playbook -i inventory.yml playbook.yml
 # Secrets: use group_vars with vault or -e
 

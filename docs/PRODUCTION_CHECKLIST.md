@@ -1,4 +1,4 @@
-# Production checklist (PRO)
+# Production checklist
 
 Перед выводом стека в production и для аудита по лучшим практикам.
 

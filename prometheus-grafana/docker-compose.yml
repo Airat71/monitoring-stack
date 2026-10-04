@@ -1,24 +1,16 @@
-# ============================================================================
-# Enterprise Monitoring Stack — FREE Version
-# ============================================================================
-# Basic stack: Prometheus + Grafana + Node Exporter
-# 2 dashboards, 5 alerts, manual setup
+# Monitoring stack: Prometheus, Grafana, Alertmanager, Node Exporter, Blackbox.
 #
 # Quick start:
-#   cp .env.example .env && vi .env
+#   cp .env.example .env
 #   docker compose up -d
 #
-# Grafana:    http://localhost:3001
-# Prometheus: http://localhost:9090
-#
-# Want more? PRO version adds Alertmanager, Telegram notifications,
-# fail2ban monitoring, 8 dashboards, 20 alerts, Ansible automation.
-# See ../docs/PURCHASE.md
-# ============================================================================
+# Grafana:       http://127.0.0.1:3001
+# Prometheus:    http://127.0.0.1:9090
+# Alertmanager:  http://127.0.0.1:9093
 
 services:
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.14.0
     container_name: prometheus
     restart: unless-stopped
     ports:
@@ -33,30 +25,65 @@ services:
       - '--storage.tsdb.retention.time=30d'
       - '--web.enable-lifecycle'
       - '--web.listen-address=0.0.0.0:9090'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - monitoring-net
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.3
     container_name: grafana
     restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD in .env}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_USERS_DEFAULT_THEME=dark
+      - GF_LOG_LEVEL=info
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
+      - ../grafana-dashboards/json:/etc/grafana/provisioning/dashboards/json:ro
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     networks:
       - monitoring-net
 
   node-exporter:
-    image: prom/node-exporter:v1.7.0
+    image: prom/node-exporter:v1.12.1
     container_name: node-exporter
     restart: unless-stopped
     ports:
@@ -64,17 +91,87 @@ services:
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
+    healthcheck:
+      test: ["CMD", "/bin/node_exporter", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
+    networks:
+      - monitoring-net
+
+  alertmanager:
+    image: prom/alertmanager:v0.34.1
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    networks:
+      - monitoring-net
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9115:9115"
+    volumes:
+      - ./blackbox.yml:/etc/blackbox_exporter/config.yml:ro
+    healthcheck:
+      test: ["CMD", "/bin/blackbox_exporter", "--version"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "2"
     networks:
       - monitoring-net
 
 volumes:
   prometheus-data:
   grafana-data:
+  alertmanager-data:
 
 networks:
   monitoring-net:

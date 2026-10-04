@@ -1,4 +1,4 @@
-# Upgrading the stack (PRO)
+# Upgrading the stack
 
 - **Images:** On the monitoring server, `cd /opt/monitoring` (or your path), then `docker compose pull` and `docker compose up -d` to use the latest image tags.
 - **Config:** After updating playbook or templates, re-run the playbook so Prometheus/Grafana/Alertmanager configs are updated; then restart or reload services as in OPERATIONS.md.

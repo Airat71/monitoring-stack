@@ -1,4 +1,4 @@
-# QUICK REFERENCE — PRO
+# QUICK REFERENCE
 
 ## Ports (default)
 

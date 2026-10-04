@@ -57,7 +57,7 @@
   "links": [],
   "panels": [
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -71,7 +71,7 @@
       "type": "row"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "cacheTimeout": null,
       "colorBackground": true,
       "colorPostfix": false,
@@ -166,7 +166,7 @@
       "valueName": "current"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "collapsed": false,
       "gridPos": {
         "h": 1,
@@ -180,7 +180,7 @@
       "type": "row"
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -281,7 +281,7 @@
       }
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -392,7 +392,7 @@
       }
     },
     {
-      "datasource": "${DS_PROMETHEUS}",
+      "datasource": "prometheus",
       "aliasColors": {},
       "bars": false,
       "dashLength": 10,
@@ -510,7 +510,7 @@
       {
         "allValue": null,
         "current": {},
-        "datasource": "${DS_PROMETHEUS}",
+        "datasource": "prometheus",
         "definition": "label_values(nginx_up, instance)",
         "hide": 0,
         "includeAll": true,

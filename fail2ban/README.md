@@ -1,1 +1,1 @@
-Интеграция fail2ban с PRO: см. **docs/FAIL2BAN_ENHANCED.md**.
+Интеграция fail2ban: см. **docs/FAIL2BAN_ENHANCED.md**.

@@ -1,28 +1,29 @@
-# ============================================================================
-# Prometheus Alert Rules — FREE Version (5 basic alerts)
-# ============================================================================
-# Alerts fire in Prometheus UI: http://localhost:9090/alerts
-# No notifications (Alertmanager is PRO).
-#
-# PRO version: 20 alerts + Alertmanager + Telegram/Email notifications.
-# See docs/PURCHASE.md
-# ============================================================================
+# Alert rules shipped with the stack. Names match docs/MONITORING.md.
+# Notifications: prometheus-grafana/alertmanager.yml
 
 groups:
-  - name: basic-alerts
+  - name: instance
     rules:
-
-      # 1. Any scrape target unreachable
       - alert: InstanceDown
         expr: up == 0
         for: 3m
         labels:
           severity: critical
         annotations:
-          summary: "Target {{ $labels.instance }} is DOWN"
+          summary: "Target {{ $labels.instance }} is down"
           description: "{{ $labels.job }} target {{ $labels.instance }} has been unreachable for more than 3 minutes."
 
-      # 2. High CPU usage
+      - alert: ServiceDown
+        expr: up{job=~"prometheus|node-exporter|alertmanager|blackbox-exporter"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Monitoring service {{ $labels.job }} is down"
+          description: "Core monitoring service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 5 minutes."
+
+  - name: resources
+    rules:
       - alert: HighCPUUsage
         expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
         for: 10m
@@ -30,9 +31,17 @@ groups:
           severity: warning
         annotations:
           summary: "High CPU on {{ $labels.instance }}"
-          description: "CPU usage is above 80% on {{ $labels.instance }} for more than 10 minutes. Current value: {{ $value | printf \"%.1f\" }}%"
+          description: "CPU usage is above 80% on {{ $labels.instance }} for more than 10 minutes."
 
-      # 3. High memory usage
+      - alert: HighCPUUsageCritical
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 95
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical CPU on {{ $labels.instance }}"
+          description: "CPU usage is above 95% on {{ $labels.instance }} for more than 5 minutes."
+
       - alert: HighMemoryUsage
         expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
         for: 10m
@@ -40,24 +49,110 @@ groups:
           severity: warning
         annotations:
           summary: "High memory on {{ $labels.instance }}"
-          description: "Memory usage is above 85% on {{ $labels.instance }} for more than 10 minutes. Current value: {{ $value | printf \"%.1f\" }}%"
+          description: "Memory usage is above 85% on {{ $labels.instance }} for more than 10 minutes."
 
-      # 4. Low disk space
       - alert: DiskSpaceLow
-        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs",mountpoint="/"} / node_filesystem_size_bytes{fstype!="tmpfs",mountpoint="/"})) * 100 > 80
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|devtmpfs|overlay",mountpoint="/"})) * 100 > 80
         for: 15m
         labels:
           severity: warning
         annotations:
           summary: "Low disk space on {{ $labels.instance }}"
-          description: "Disk usage is above 80% on {{ $labels.instance }} ({{ $labels.mountpoint }}). Current value: {{ $value | printf \"%.1f\" }}%"
+          description: "Root filesystem usage is above 80% on {{ $labels.instance }}."
 
-      # 5. Monitoring service down
-      - alert: ServiceDown
-        expr: up{job=~"prometheus|node-exporter"} == 0
+      - alert: DiskSpaceCritical
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|devtmpfs|overlay",mountpoint="/"} / node_filesystem_size_bytes{fstype!~"tmpfs|devtmpfs|overlay",mountpoint="/"})) * 100 > 90
         for: 5m
         labels:
           severity: critical
         annotations:
-          summary: "Monitoring service {{ $labels.job }} is DOWN"
-          description: "Core monitoring service {{ $labels.job }} has been down for more than 5 minutes. Check Docker containers."
+          summary: "Critical disk space on {{ $labels.instance }}"
+          description: "Root filesystem usage is above 90% on {{ $labels.instance }}."
+
+      - alert: HighLoadAverage
+        expr: node_load1 / count by(instance) (node_cpu_seconds_total{mode="idle"}) > 1.5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High load on {{ $labels.instance }}"
+          description: "1-minute load average per CPU is above 1.5 on {{ $labels.instance }}."
+
+      - alert: FilesystemReadonly
+        expr: node_filesystem_readonly{fstype!~"tmpfs|devtmpfs|overlay|squashfs"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem is read-only on {{ $labels.instance }}"
+          description: "Mount {{ $labels.mountpoint }} on {{ $labels.instance }} is read-only."
+
+  - name: probes
+    rules:
+      - alert: BlackboxProbeFailed
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Probe failed for {{ $labels.instance }}"
+          description: "Blackbox probe of {{ $labels.instance }} has been failing for more than 5 minutes."
+
+  - name: self-monitoring
+    rules:
+      - alert: PrometheusConfigReloadFailure
+        expr: prometheus_config_last_reload_successful == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus failed to reload its configuration"
+          description: "prometheus_config_last_reload_successful is 0. Fix prometheus.yml and reload."
+
+      - alert: PrometheusNotConnectedToAlertmanager
+        expr: prometheus_notifications_alertmanagers_discovered < 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus has no Alertmanager"
+          description: "Prometheus is not connected to Alertmanager. Check alertmanager:9093 and alerting.alertmanagers."
+
+  - name: fail2ban
+    rules:
+      - alert: Fail2banHighAttackRate
+        expr: increase(fail2ban_banned_total[5m]) > 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "High fail2ban ban rate on {{ $labels.instance }}"
+          description: "More than 10 bans in 5 minutes. The fail2ban exporter must be scraped for this rule to have data."
+
+  - name: optional-exporters
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL exporter reports down on {{ $labels.instance }}"
+          description: "pg_up is 0. This rule stays inactive until a PostgreSQL exporter is scraped."
+
+      - alert: RabbitMQDown
+        expr: rabbitmq_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RabbitMQ exporter reports down on {{ $labels.instance }}"
+          description: "rabbitmq_up is 0. This rule stays inactive until a RabbitMQ exporter is scraped."
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis exporter reports down on {{ $labels.instance }}"
+          description: "redis_up is 0. This rule stays inactive until a Redis exporter is scraped."

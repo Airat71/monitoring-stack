@@ -14,25 +14,26 @@ Get your monitoring stack running in **5 minutes**.
 git clone https://github.com/Airat71/monitoring-stack.git
 cd monitoring-stack/prometheus-grafana
 cp .env.example .env
-# Edit .env — set GRAFANA_PASSWORD
+# Edit .env — set GRAFANA_PASSWORD. Compose will not start while it is empty.
 docker compose up -d
 docker compose ps   # verify all containers are healthy
 ```
 
-**Access:**
-- Grafana: http://localhost:3000 (admin / your password)
+**Access** (bound to 127.0.0.1):
+- Grafana: http://localhost:3001 (admin / your password)
 - Prometheus: http://localhost:9090
+- Alertmanager: http://localhost:9093
 
 **On a remote server** — open an SSH tunnel first:
 ```bash
-ssh -L 3000:localhost:3000 -L 9090:localhost:9090 user@your-server-ip
+ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@your-server-ip
 ```
 
 ---
 
-## Option B — Full deploy with Ansible
+## Option B — Same stack on a server, with Ansible
 
-Deploys the complete stack to your server including Node Exporter on additional hosts:
+Deploys this stack to your server and Node Exporter on additional hosts:
 
 ```bash
 cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
@@ -77,8 +78,9 @@ cd ansible && ansible-playbook -i inventory.yml playbook.yml
 
 ### Configure alerts (Telegram)
 ```bash
-# Edit alerts/alertmanager.example.yml — set your bot_token and chat_id
-# Copy to prometheus-grafana/alertmanager.yml and docker compose up -d
+# Edit alerts/alertmanager.example.yml — set bot_token and a numeric chat_id
+# Copy it over prometheus-grafana/alertmanager.yml, then:
+# docker compose up -d alertmanager
 ```
 
 ---

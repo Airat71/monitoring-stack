@@ -1,4 +1,4 @@
-# DEPLOYMENT — Full deployment process (PRO)
+# DEPLOYMENT — Full deployment process
 
 1. **Prerequisites:** Ansible 2.9+, Docker and Docker Compose on the monitoring server; SSH access to all hosts.
 2. **Inventory:** Copy `inventory.example.yml` to `inventory.yml` and set `ansible_host` for `monitoring_server` and `monitored_nodes`.
