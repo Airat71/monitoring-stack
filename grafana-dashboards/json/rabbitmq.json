@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "nginx-prometheus-exporter metrics. Stays empty until a scrape job named nginx exists.",
+  "description": "rabbitmq_exporter metrics. Stays empty until a scrape job named rabbitmq exists.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Empty until a scrape job named nginx is added.",
+      "description": "Matches alert RabbitMQDown. Empty until job rabbitmq is scraped.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -65,7 +65,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_up{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "rabbitmq_up{job=\"rabbitmq\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -78,7 +78,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "nginx_connections_active from nginx-prometheus-exporter.",
+      "description": "Broker connections from rabbitmq_exporter.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -125,12 +125,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_active{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "sum by(instance) (rabbitmq_connections{job=\"rabbitmq\",instance=~\"$instance\"})",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Active connections",
+      "title": "Connections",
       "type": "stat"
     },
     {
@@ -138,7 +138,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Request rate.",
+      "description": "Messages in queues.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -168,7 +168,7 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -200,12 +200,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(nginx_http_requests_total{job=\"nginx\",instance=~\"$instance\"}[5m])",
+          "expr": "sum by(instance) (rabbitmq_queue_messages{job=\"rabbitmq\",instance=~\"$instance\"})",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Requests",
+      "title": "Queue messages",
       "type": "timeseries"
     },
     {
@@ -213,7 +213,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Reading, writing, and waiting connections.",
+      "description": "Ready messages and messages waiting for acknowledgement.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -275,8 +275,8 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_reading{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} reading",
+          "expr": "sum by(instance) (rabbitmq_queue_messages_ready{job=\"rabbitmq\",instance=~\"$instance\"})",
+          "legendFormat": "{{instance}} ready",
           "refId": "A"
         },
         {
@@ -285,22 +285,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_writing{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} writing",
+          "expr": "sum by(instance) (rabbitmq_queue_messages_unacknowledged{job=\"rabbitmq\",instance=~\"$instance\"})",
+          "legendFormat": "{{instance}} unacked",
           "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "nginx_connections_waiting{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} waiting",
-          "refId": "C"
         }
       ],
-      "title": "Connection states",
+      "title": "Ready vs unacked",
       "type": "timeseries"
     }
   ],
@@ -308,7 +298,7 @@
   "schemaVersion": 39,
   "tags": [
     "monitoring",
-    "nginx"
+    "rabbitmq"
   ],
   "templating": {
     "list": [
@@ -323,7 +313,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nginx_up{job=\"nginx\"}, instance)",
+        "definition": "label_values(rabbitmq_up{job=\"rabbitmq\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -331,7 +321,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(nginx_up{job=\"nginx\"}, instance)",
+          "query": "label_values(rabbitmq_up{job=\"rabbitmq\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -347,7 +337,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Nginx",
-  "uid": "ms-nginx",
+  "title": "RabbitMQ",
+  "uid": "ms-rabbitmq",
   "version": 1
 }

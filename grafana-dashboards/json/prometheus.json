@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "nginx-prometheus-exporter metrics. Stays empty until a scrape job named nginx exists.",
+  "description": "Prometheus process health: reload, Alertmanager link, scrape duration, and TSDB series.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Empty until a scrape job named nginx is added.",
+      "description": "1 means the last reload succeeded.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -65,12 +65,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_up{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "prometheus_config_last_reload_successful{job=\"prometheus\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Exporter up",
+      "title": "Config reload",
       "type": "stat"
     },
     {
@@ -78,7 +78,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "nginx_connections_active from nginx-prometheus-exporter.",
+      "description": "Matches PrometheusNotConnectedToAlertmanager when this is below 1.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -88,12 +88,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
               }
             ]
           },
-          "unit": "short"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -125,12 +129,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_active{job=\"nginx\",instance=~\"$instance\"}",
+          "expr": "prometheus_notifications_alertmanagers_discovered{job=\"prometheus\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Active connections",
+      "title": "Alertmanagers",
       "type": "stat"
     },
     {
@@ -138,7 +142,131 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Request rate.",
+      "description": "Healthy scrape targets across every job. Not filtered by the Prometheus instance variable.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count(up == 1)",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Targets up",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Failures while evaluating recording and alerting rules.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "sum(increase(prometheus_rule_evaluation_failures_total{job=\"prometheus\",instance=~\"$instance\"}[15m]))",
+          "legendFormat": "{{instance}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Rule eval failures",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "How long the last scrape of Prometheus itself took.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -168,7 +296,7 @@
               }
             ]
           },
-          "unit": "reqps"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -178,7 +306,7 @@
         "x": 0,
         "y": 4
       },
-      "id": 3,
+      "id": 5,
       "options": {
         "legend": {
           "calcs": [
@@ -200,12 +328,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(nginx_http_requests_total{job=\"nginx\",instance=~\"$instance\"}[5m])",
+          "expr": "scrape_duration_seconds{job=\"prometheus\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
       ],
-      "title": "Requests",
+      "title": "Scrape duration",
       "type": "timeseries"
     },
     {
@@ -213,7 +341,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Reading, writing, and waiting connections.",
+      "description": "Active series in the TSDB head block.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -253,7 +381,7 @@
         "x": 12,
         "y": 4
       },
-      "id": 4,
+      "id": 6,
       "options": {
         "legend": {
           "calcs": [
@@ -275,32 +403,12 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "nginx_connections_reading{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} reading",
+          "expr": "prometheus_tsdb_head_series{job=\"prometheus\",instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "nginx_connections_writing{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} writing",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "editorMode": "code",
-          "expr": "nginx_connections_waiting{job=\"nginx\",instance=~\"$instance\"}",
-          "legendFormat": "{{instance}} waiting",
-          "refId": "C"
         }
       ],
-      "title": "Connection states",
+      "title": "TSDB head series",
       "type": "timeseries"
     }
   ],
@@ -308,7 +416,7 @@
   "schemaVersion": 39,
   "tags": [
     "monitoring",
-    "nginx"
+    "prometheus"
   ],
   "templating": {
     "list": [
@@ -323,7 +431,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nginx_up{job=\"nginx\"}, instance)",
+        "definition": "label_values(up{job=\"prometheus\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -331,7 +439,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(nginx_up{job=\"nginx\"}, instance)",
+          "query": "label_values(up{job=\"prometheus\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -347,7 +455,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Nginx",
-  "uid": "ms-nginx",
+  "title": "Prometheus",
+  "uid": "ms-prometheus",
   "version": 1
 }

@@ -34,7 +34,7 @@
   delegate_to: localhost
   run_once: true
 
-- name: Copy Grafana dashboard JSON folder (run scripts/fetch-dashboards.sh to populate)
+- name: Copy Grafana dashboard JSON folder
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../grafana-dashboards/json/"
     dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/json"

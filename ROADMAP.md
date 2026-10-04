@@ -7,7 +7,7 @@
 - [x] fail2ban alert rule (`Fail2banHighAttackRate`); exporter is installed separately
 - [x] Ansible automation — one-command full deployment
 - [x] Node Exporter on multiple hosts via Ansible
-- [x] 8 pre-built Grafana dashboards (Node Exporter, Prometheus, Blackbox, System Overview, Nginx, PostgreSQL, Redis, RabbitMQ)
+- [x] 8 original Grafana dashboards (Host, System Overview, Prometheus, Blackbox, Nginx, PostgreSQL, Redis, RabbitMQ)
 - [x] 16 alert rules (names in docs/MONITORING.md)
 - [x] Telegram + email alert routing
 - [x] Automated backup script

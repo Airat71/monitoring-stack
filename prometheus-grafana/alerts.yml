@@ -70,7 +70,7 @@ groups:
           description: "Root filesystem usage is above 90% on {{ $labels.instance }}."
 
       - alert: HighLoadAverage
-        expr: node_load1 / count by(instance) (node_cpu_seconds_total{mode="idle"}) > 1.5
+        expr: node_load1 / on(instance) group_left() count by(instance) (node_cpu_seconds_total{mode="idle"}) > 1.5
         for: 15m
         labels:
           severity: warning
