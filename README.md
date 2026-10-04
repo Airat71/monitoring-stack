@@ -36,10 +36,10 @@ One-command deploy, 8 original dashboards, optional Telegram alerts, multi-serve
 | System Overview | CPU, memory, disk, load, uptime | Live |
 | Prometheus | Scrape duration, TSDB, Alertmanager link | Live |
 | Blackbox | Probe success, HTTP status, TLS expiry | Live |
-| Nginx | Connections, request rate, error rate | Empty until exporter with job `nginx` |
+| Nginx | Connections and request rate | Empty until exporter with job `nginx` |
 | PostgreSQL | Sessions, transactions, database size | Empty until exporter with job `postgresql` |
 | Redis | Memory, hit ratio, commands/sec | Empty until exporter with job `redis` |
-| RabbitMQ | Connections, queues, message rate | Empty until exporter with job `rabbitmq` |
+| RabbitMQ | Connections and queue depth | Empty until exporter with job `rabbitmq` |
 
 ---
 
