@@ -12,6 +12,7 @@ Eight dashboards are provisioned from `grafana-dashboards/json/`. Grafana loads 
 | PostgreSQL | `ms-postgresql` | Any scrape job exposes `pg_up` — select it in the `$job` dropdown |
 | Redis | `ms-redis` | Any scrape job exposes `redis_up` — select it in the `$job` dropdown |
 | RabbitMQ | `ms-rabbitmq` | Any scrape job exposes `rabbitmq_up` — select it in the `$job` dropdown |
+| Fail2ban | `ms-fail2ban` | Any fail2ban exporter job is scraped — select it in the `$job` dropdown |
 
 Panels are `gauge`, `stat`, and `timeseries`. Thresholds on the Host dashboard follow the alert rules: CPU 80%, memory 85%, disk 80/90%, load per CPU 1.5.
 
