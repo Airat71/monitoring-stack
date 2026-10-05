@@ -9,6 +9,8 @@ Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanag
 
 One-command deploy, 8 original dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
 
+If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack) helps others find it.
+
 ---
 
 ## What's included
