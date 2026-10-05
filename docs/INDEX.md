@@ -17,7 +17,6 @@
 
 ## Security
 - [SECURITY.md](SECURITY.md) — hardening guide
-- [PRODUCTION_CHECKLIST.md](PRODUCTION_CHECKLIST.md) — pre-production checklist
 - [FAIL2BAN_ENHANCED.md](FAIL2BAN_ENHANCED.md) — fail2ban integration
 
 ## Services monitoring

@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "redis_exporter metrics. Stays empty until a scrape job named redis exists.",
+  "description": "redis_exporter metrics. Select the scrape job in the $job dropdown.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -65,7 +65,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "redis_up{job=\"redis\",instance=~\"$instance\"}",
+          "expr": "redis_up{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -125,7 +125,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "redis_connected_clients{job=\"redis\",instance=~\"$instance\"}",
+          "expr": "redis_connected_clients{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -200,7 +200,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "redis_memory_used_bytes{job=\"redis\",instance=~\"$instance\"}",
+          "expr": "redis_memory_used_bytes{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}} used",
           "refId": "A"
         }
@@ -275,7 +275,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by(instance) (rate(redis_keyspace_hits_total{job=\"redis\",instance=~\"$instance\"}[5m])) / (sum by(instance) (rate(redis_keyspace_hits_total{job=\"redis\",instance=~\"$instance\"}[5m])) + sum by(instance) (rate(redis_keyspace_misses_total{job=\"redis\",instance=~\"$instance\"}[5m])))",
+          "expr": "sum by(instance) (rate(redis_keyspace_hits_total{job=~\"$job\",instance=~\"$instance\"}[5m])) / (sum by(instance) (rate(redis_keyspace_hits_total{job=~\"$job\",instance=~\"$instance\"}[5m])) + sum by(instance) (rate(redis_keyspace_misses_total{job=~\"$job\",instance=~\"$instance\"}[5m])))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -350,7 +350,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "rate(redis_commands_processed_total{job=\"redis\",instance=~\"$instance\"}[5m])",
+          "expr": "rate(redis_commands_processed_total{job=~\"$job\",instance=~\"$instance\"}[5m])",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -378,7 +378,34 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(redis_up{job=\"redis\"}, instance)",
+        "definition": "label_values(redis_up, job)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": true,
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(redis_up, job)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(redis_up{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -386,7 +413,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(redis_up{job=\"redis\"}, instance)",
+          "query": "label_values(redis_up{job=~\"$job\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,

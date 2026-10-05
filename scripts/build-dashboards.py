@@ -159,9 +159,11 @@ def dashboard(
     description: str,
     tags: list[str],
     panels: list[dict],
-    var_query: str,
+    job_metric: str,
     var_label: str = "Instance",
 ) -> dict:
+    job_query = f"label_values({job_metric}, job)"
+    inst_query = f'label_values({job_metric}{{job=~"$job"}}, instance)'
     return {
         "annotations": {"list": []},
         "description": description,
@@ -174,7 +176,10 @@ def dashboard(
         "refresh": "30s",
         "schemaVersion": 39,
         "tags": tags,
-        "templating": {"list": [variable("instance", var_label, var_query)]},
+        "templating": {"list": [
+            variable("job", "Job", job_query),
+            variable("instance", var_label, inst_query),
+        ]},
         "time": {"from": "now-6h", "to": "now"},
         "timepicker": {},
         "timezone": "browser",
@@ -189,12 +194,12 @@ MEM_STEPS = [("green", None), ("yellow", 85), ("red", 95)]
 DISK_STEPS = [("green", None), ("yellow", 80), ("red", 90)]
 LOAD_STEPS = [("green", None), ("red", 1.5)]
 UP = [("red", None), ("green", 1)]
+JOB = 'job=~"$job"'
 INST = 'instance=~"$instance"'
 
 
 def host_panels() -> list[dict]:
-    job = 'job="node-exporter"'
-    sel = f"{job},{INST}"
+    sel = f"{JOB},{INST}"
     cpu = f'100 - (avg by(instance) (rate(node_cpu_seconds_total{{mode="idle",{sel}}}[5m])) * 100)'
     mem = f"(1 - (node_memory_MemAvailable_bytes{{{sel}}} / node_memory_MemTotal_bytes{{{sel}}})) * 100"
     disk = (
@@ -272,7 +277,7 @@ def overview_panels() -> list[dict]:
         stat(
             9,
             "Uptime",
-            'time() - node_boot_time_seconds{job="node-exporter",instance=~"$instance"}',
+            f'time() - node_boot_time_seconds{{{JOB},{INST}}}',
             {"h": 4, "w": 6, "x": 0, "y": 6},
             "s",
             [("green", None)],
@@ -282,7 +287,7 @@ def overview_panels() -> list[dict]:
 
 
 def prometheus_panels() -> list[dict]:
-    sel = 'job="prometheus",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     return [
         stat(1, "Config reload", f"prometheus_config_last_reload_successful{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "1 means the last reload succeeded."),
         stat(2, "Alertmanagers", f"prometheus_notifications_alertmanagers_discovered{{{sel}}}", {"h": 4, "w": 6, "x": 6, "y": 0}, "none", [("red", None), ("green", 1)], "Matches PrometheusNotConnectedToAlertmanager when this is below 1."),
@@ -294,7 +299,7 @@ def prometheus_panels() -> list[dict]:
 
 
 def blackbox_panels() -> list[dict]:
-    sel = 'job="blackbox",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     return [
         stat(1, "Probe success", f"probe_success{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "1 is up. Matches alert BlackboxProbeFailed."),
         stat(2, "HTTP status", f"probe_http_status_code{{{sel}}}", {"h": 4, "w": 6, "x": 6, "y": 0}, "none", [("green", None)], "HTTP status from the http_2xx module."),
@@ -311,7 +316,7 @@ def blackbox_panels() -> list[dict]:
 
 
 def nginx_panels() -> list[dict]:
-    sel = 'job="nginx",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     return [
         stat(1, "Exporter up", f"nginx_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Empty until a scrape job named nginx is added."),
         stat(2, "Active connections", f"nginx_connections_active{{{sel}}}", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "nginx_connections_active from nginx-prometheus-exporter."),
@@ -332,7 +337,7 @@ def nginx_panels() -> list[dict]:
 
 
 def postgres_panels() -> list[dict]:
-    sel = 'job="postgresql",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     return [
         stat(1, "Exporter up", f"pg_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert PostgreSQLDown. Empty until job postgresql is scraped."),
         stat(2, "Sessions", f"sum by(instance) (pg_stat_activity_count{{{sel}}})", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "Sessions reported by postgres_exporter."),
@@ -342,7 +347,7 @@ def postgres_panels() -> list[dict]:
 
 
 def redis_panels() -> list[dict]:
-    sel = 'job="redis",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     hit = f"sum by(instance) (rate(redis_keyspace_hits_total{{{sel}}}[5m]))"
     miss = f"sum by(instance) (rate(redis_keyspace_misses_total{{{sel}}}[5m]))"
     return [
@@ -355,7 +360,7 @@ def redis_panels() -> list[dict]:
 
 
 def rabbitmq_panels() -> list[dict]:
-    sel = 'job="rabbitmq",instance=~"$instance"'
+    sel = f"{JOB},{INST}"
     return [
         stat(1, "Exporter up", f"rabbitmq_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert RabbitMQDown. Empty until job rabbitmq is scraped."),
         stat(2, "Connections", f"sum by(instance) (rabbitmq_connections{{{sel}}})", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "Broker connections from rabbitmq_exporter."),
@@ -372,7 +377,7 @@ def build() -> dict[str, dict]:
             "CPU, memory, disk, and network from Node Exporter. Original dashboard for this repository.",
             ["monitoring", "host", "node-exporter"],
             host_panels(),
-            'label_values(up{job="node-exporter"}, instance)',
+            "node_uname_info",
         ),
         "system-overview.json": dashboard(
             "system-overview",
@@ -380,7 +385,7 @@ def build() -> dict[str, dict]:
             "Short host summary: CPU, memory, root disk, load, and uptime.",
             ["monitoring", "host", "overview"],
             overview_panels(),
-            'label_values(up{job="node-exporter"}, instance)',
+            "node_uname_info",
         ),
         "prometheus.json": dashboard(
             "ms-prometheus",
@@ -388,48 +393,48 @@ def build() -> dict[str, dict]:
             "Prometheus process health: reload, Alertmanager link, scrape duration, and TSDB series.",
             ["monitoring", "prometheus"],
             prometheus_panels(),
-            'label_values(up{job="prometheus"}, instance)',
+            "prometheus_build_info",
         ),
         "blackbox.json": dashboard(
             "ms-blackbox",
             "Blackbox",
-            "HTTP probe success, status, duration, and certificate expiry. Job name: blackbox.",
+            "HTTP probe success, status, duration, and certificate expiry. Select the probe job in the $job dropdown.",
             ["monitoring", "blackbox"],
             blackbox_panels(),
-            'label_values(probe_success{job="blackbox"}, instance)',
+            "probe_success",
             "Target",
         ),
         "nginx.json": dashboard(
             "ms-nginx",
             "Nginx",
-            "nginx-prometheus-exporter metrics. Stays empty until a scrape job named nginx exists.",
+            "nginx-prometheus-exporter metrics. Select the scrape job in the $job dropdown.",
             ["monitoring", "nginx"],
             nginx_panels(),
-            'label_values(nginx_up{job="nginx"}, instance)',
+            "nginx_up",
         ),
         "postgresql.json": dashboard(
             "ms-postgresql",
             "PostgreSQL",
-            "postgres_exporter metrics. Stays empty until a scrape job named postgresql exists.",
+            "postgres_exporter metrics. Select the scrape job in the $job dropdown.",
             ["monitoring", "postgresql"],
             postgres_panels(),
-            'label_values(pg_up{job="postgresql"}, instance)',
+            "pg_up",
         ),
         "redis.json": dashboard(
             "ms-redis",
             "Redis",
-            "redis_exporter metrics. Stays empty until a scrape job named redis exists.",
+            "redis_exporter metrics. Select the scrape job in the $job dropdown.",
             ["monitoring", "redis"],
             redis_panels(),
-            'label_values(redis_up{job="redis"}, instance)',
+            "redis_up",
         ),
         "rabbitmq.json": dashboard(
             "ms-rabbitmq",
             "RabbitMQ",
-            "rabbitmq_exporter metrics. Stays empty until a scrape job named rabbitmq exists.",
+            "rabbitmq_exporter metrics. Select the scrape job in the $job dropdown.",
             ["monitoring", "rabbitmq"],
             rabbitmq_panels(),
-            'label_values(rabbitmq_up{job="rabbitmq"}, instance)',
+            "rabbitmq_up",
         ),
     }
 

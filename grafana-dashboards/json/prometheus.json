@@ -65,7 +65,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "prometheus_config_last_reload_successful{job=\"prometheus\",instance=~\"$instance\"}",
+          "expr": "prometheus_config_last_reload_successful{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -129,7 +129,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "prometheus_notifications_alertmanagers_discovered{job=\"prometheus\",instance=~\"$instance\"}",
+          "expr": "prometheus_notifications_alertmanagers_discovered{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -253,7 +253,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(increase(prometheus_rule_evaluation_failures_total{job=\"prometheus\",instance=~\"$instance\"}[15m]))",
+          "expr": "sum(increase(prometheus_rule_evaluation_failures_total{job=~\"$job\",instance=~\"$instance\"}[15m]))",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -328,7 +328,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "scrape_duration_seconds{job=\"prometheus\",instance=~\"$instance\"}",
+          "expr": "scrape_duration_seconds{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -403,7 +403,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "prometheus_tsdb_head_series{job=\"prometheus\",instance=~\"$instance\"}",
+          "expr": "prometheus_tsdb_head_series{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -431,7 +431,34 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(up{job=\"prometheus\"}, instance)",
+        "definition": "label_values(prometheus_build_info, job)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": true,
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(prometheus_build_info, job)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(prometheus_build_info{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -439,7 +466,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(up{job=\"prometheus\"}, instance)",
+          "query": "label_values(prometheus_build_info{job=~\"$job\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,

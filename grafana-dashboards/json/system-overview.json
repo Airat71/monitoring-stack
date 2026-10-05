@@ -69,7 +69,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\",job=\"node-exporter\",instance=~\"$instance\"}[5m])) * 100)",
+          "expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\",job=~\"$job\",instance=~\"$instance\"}[5m])) * 100)",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -137,7 +137,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(1 - (node_memory_MemAvailable_bytes{job=\"node-exporter\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node-exporter\",instance=~\"$instance\"})) * 100",
+          "expr": "(1 - (node_memory_MemAvailable_bytes{job=~\"$job\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\",instance=~\"$instance\"})) * 100",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -205,7 +205,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|devtmpfs|overlay\",job=\"node-exporter\",instance=~\"$instance\"} / node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|devtmpfs|overlay\",job=\"node-exporter\",instance=~\"$instance\"})) * 100",
+          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|devtmpfs|overlay\",job=~\"$job\",instance=~\"$instance\"} / node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|devtmpfs|overlay\",job=~\"$job\",instance=~\"$instance\"})) * 100",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -269,7 +269,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "node_load1{job=\"node-exporter\",instance=~\"$instance\"} / on(instance) group_left() count by(instance) (node_cpu_seconds_total{mode=\"idle\",job=\"node-exporter\",instance=~\"$instance\"})",
+          "expr": "node_load1{job=~\"$job\",instance=~\"$instance\"} / on(instance) group_left() count by(instance) (node_cpu_seconds_total{mode=\"idle\",job=~\"$job\",instance=~\"$instance\"})",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -329,7 +329,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "time() - node_boot_time_seconds{job=\"node-exporter\",instance=~\"$instance\"}",
+          "expr": "time() - node_boot_time_seconds{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -358,7 +358,34 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(up{job=\"node-exporter\"}, instance)",
+        "definition": "label_values(node_uname_info, job)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": true,
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(node_uname_info, job)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values(node_uname_info{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -366,7 +393,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(up{job=\"node-exporter\"}, instance)",
+          "query": "label_values(node_uname_info{job=~\"$job\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
