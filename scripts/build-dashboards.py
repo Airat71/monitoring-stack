@@ -369,6 +369,49 @@ def rabbitmq_panels() -> list[dict]:
     ]
 
 
+def fail2ban_panels() -> list[dict]:
+    sel = f"{JOB},{INST}"
+    return [
+        stat(
+            1, "Current bans",
+            f"sum(fail2ban_current_bans{{{sel}}})",
+            {"h": 4, "w": 6, "x": 0, "y": 0},
+            "short",
+            [("green", None), ("yellow", 1), ("red", 10)],
+            "IPs currently banned across all jails.",
+        ),
+        stat(
+            2, "Failed attempts",
+            f"sum(fail2ban_failed_current{{{sel}}})",
+            {"h": 4, "w": 6, "x": 6, "y": 0},
+            "short",
+            [("green", None), ("yellow", 5), ("red", 20)],
+            "Failed login attempts currently tracked across all jails.",
+        ),
+        timeseries(
+            3, "Active bans per jail",
+            [(f"fail2ban_current_bans{{{sel}}}", "{{jail}}")],
+            {"h": 8, "w": 12, "x": 0, "y": 4},
+            "short",
+            "Currently banned IPs broken down by jail.",
+        ),
+        timeseries(
+            4, "New bans per hour",
+            [(f"increase(fail2ban_banned_total{{{sel}}}[1h])", "{{jail}}")],
+            {"h": 8, "w": 12, "x": 12, "y": 4},
+            "short",
+            "Ban rate per jail over the last hour. Matches alert Fail2banHighAttackRate (>10 in 5 min).",
+        ),
+        timeseries(
+            5, "Failed attempts per jail",
+            [(f"fail2ban_failed_current{{{sel}}}", "{{jail}}")],
+            {"h": 8, "w": 24, "x": 0, "y": 12},
+            "short",
+            "Current failed attempts tracked by each jail.",
+        ),
+    ]
+
+
 def build() -> dict[str, dict]:
     return {
         "host.json": dashboard(
@@ -435,6 +478,14 @@ def build() -> dict[str, dict]:
             ["monitoring", "rabbitmq"],
             rabbitmq_panels(),
             "rabbitmq_up",
+        ),
+        "fail2ban.json": dashboard(
+            "ms-fail2ban",
+            "Fail2ban",
+            "fail2ban jail activity: current bans, failed attempts, ban rate. Select the scrape job in the $job dropdown.",
+            ["monitoring", "security", "fail2ban"],
+            fail2ban_panels(),
+            "fail2ban_current_bans",
         ),
     }
 
