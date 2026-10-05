@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Matches alert RabbitMQDown. Empty until job rabbitmq is scraped.",
+      "description": "Matches alert RabbitMQDown. Empty until an exporter exposes rabbitmq_up.",
       "fieldConfig": {
         "defaults": {
           "color": {

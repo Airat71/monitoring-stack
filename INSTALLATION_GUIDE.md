@@ -50,7 +50,7 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
    Telegram is optional. Set `telegram_bot_token` and numeric `telegram_chat_id` in Ansible Vault. Leave them unset to start Alertmanager without Telegram. Never commit `all.yml`.
 
 4. **Dashboards**
-   The eight dashboards in `grafana-dashboards/json/` are already in the repository. The playbook copies them. Run `./scripts/fetch-dashboards.sh` only after editing `scripts/build-dashboards.py`.
+   The nine dashboards in `grafana-dashboards/json/` are already in the repository. The playbook copies them. Run `./scripts/fetch-dashboards.sh` only after editing `scripts/build-dashboards.py`.
 
 5. **Run the playbook**
    ```bash

@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Matches alert PostgreSQLDown. Empty until job postgresql is scraped.",
+      "description": "Matches alert PostgreSQLDown. Empty until an exporter exposes pg_up.",
       "fieldConfig": {
         "defaults": {
           "color": {

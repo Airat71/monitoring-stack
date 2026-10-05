@@ -1,6 +1,6 @@
 # Dashboards in this repository
 
-The eight dashboards are already in `grafana-dashboards/json/`. Docker Compose and the Ansible playbook provision them. There is nothing to download.
+The nine dashboards are already in `grafana-dashboards/json/`. Docker Compose and the Ansible playbook provision them. There is nothing to download.
 
 Grafana reads `/etc/grafana/provisioning/dashboards/json`. After a JSON change, restart Grafana or wait for the next provisioning cycle:
 

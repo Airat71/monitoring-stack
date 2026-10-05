@@ -69,7 +69,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(fail2ban_current_bans{job=~\"$job\",instance=~\"$instance\"})",
+          "expr": "sum(f2b_jail_banned_current{job=~\"$job\",instance=~\"$instance\"})",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -137,7 +137,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum(fail2ban_failed_current{job=~\"$job\",instance=~\"$instance\"})",
+          "expr": "sum(f2b_jail_failed_current{job=~\"$job\",instance=~\"$instance\"})",
           "legendFormat": "{{instance}}",
           "refId": "A"
         }
@@ -212,7 +212,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "fail2ban_current_bans{job=~\"$job\",instance=~\"$instance\"}",
+          "expr": "f2b_jail_banned_current{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{jail}}",
           "refId": "A"
         }
@@ -287,7 +287,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "increase(fail2ban_banned_total{job=~\"$job\",instance=~\"$instance\"}[1h])",
+          "expr": "increase(f2b_jail_banned_total{job=~\"$job\",instance=~\"$instance\"}[1h])",
           "legendFormat": "{{jail}}",
           "refId": "A"
         }
@@ -362,7 +362,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "fail2ban_failed_current{job=~\"$job\",instance=~\"$instance\"}",
+          "expr": "f2b_jail_failed_current{job=~\"$job\",instance=~\"$instance\"}",
           "legendFormat": "{{jail}}",
           "refId": "A"
         }
@@ -391,7 +391,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(fail2ban_current_bans, job)",
+        "definition": "label_values(f2b_up, job)",
         "hide": 0,
         "includeAll": true,
         "label": "Job",
@@ -399,7 +399,7 @@
         "name": "job",
         "options": [],
         "query": {
-          "query": "label_values(fail2ban_current_bans, job)",
+          "query": "label_values(f2b_up, job)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -418,7 +418,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(fail2ban_current_bans{job=~\"$job\"}, instance)",
+        "definition": "label_values(f2b_up{job=~\"$job\"}, instance)",
         "hide": 0,
         "includeAll": true,
         "label": "Instance",
@@ -426,7 +426,7 @@
         "name": "instance",
         "options": [],
         "query": {
-          "query": "label_values(fail2ban_current_bans{job=~\"$job\"}, instance)",
+          "query": "label_values(f2b_up{job=~\"$job\"}, instance)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,

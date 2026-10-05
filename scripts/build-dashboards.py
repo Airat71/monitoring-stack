@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Write the eight dashboards shipped in grafana-dashboards/json/.
+"""Write the nine dashboards shipped in grafana-dashboards/json/.
 
 These files are original to this repository. Edit this script, then run it
 from the repository root. Do not replace the output with downloads from
@@ -318,7 +318,7 @@ def blackbox_panels() -> list[dict]:
 def nginx_panels() -> list[dict]:
     sel = f"{JOB},{INST}"
     return [
-        stat(1, "Exporter up", f"nginx_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Empty until a scrape job named nginx is added."),
+        stat(1, "Exporter up", f"nginx_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Empty until an exporter exposes nginx_up."),
         stat(2, "Active connections", f"nginx_connections_active{{{sel}}}", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "nginx_connections_active from nginx-prometheus-exporter."),
         timeseries(3, "Requests", [(f"rate(nginx_http_requests_total{{{sel}}}[5m])", "{{instance}}")], {"h": 8, "w": 12, "x": 0, "y": 4}, "reqps", "Request rate."),
         timeseries(
@@ -339,7 +339,7 @@ def nginx_panels() -> list[dict]:
 def postgres_panels() -> list[dict]:
     sel = f"{JOB},{INST}"
     return [
-        stat(1, "Exporter up", f"pg_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert PostgreSQLDown. Empty until job postgresql is scraped."),
+        stat(1, "Exporter up", f"pg_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert PostgreSQLDown. Empty until an exporter exposes pg_up."),
         stat(2, "Sessions", f"sum by(instance) (pg_stat_activity_count{{{sel}}})", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "Sessions reported by postgres_exporter."),
         timeseries(3, "Transactions", [(f"sum by(instance) (rate(pg_stat_database_xact_commit{{{sel}}}[5m]))", "{{instance}} commit"), (f"sum by(instance) (rate(pg_stat_database_xact_rollback{{{sel}}}[5m]))", "{{instance}} rollback")], {"h": 8, "w": 12, "x": 0, "y": 4}, "ops", "Commits and rollbacks per second."),
         timeseries(4, "Database size", [(f"pg_database_size_bytes{{{sel}}}", "{{instance}} {{datname}}")], {"h": 8, "w": 12, "x": 12, "y": 4}, "bytes", "Size of each database."),
@@ -351,7 +351,7 @@ def redis_panels() -> list[dict]:
     hit = f"sum by(instance) (rate(redis_keyspace_hits_total{{{sel}}}[5m]))"
     miss = f"sum by(instance) (rate(redis_keyspace_misses_total{{{sel}}}[5m]))"
     return [
-        stat(1, "Exporter up", f"redis_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert RedisDown. Empty until job redis is scraped."),
+        stat(1, "Exporter up", f"redis_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert RedisDown. Empty until an exporter exposes redis_up."),
         stat(2, "Clients", f"redis_connected_clients{{{sel}}}", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "Connected clients."),
         timeseries(3, "Memory", [(f"redis_memory_used_bytes{{{sel}}}", "{{instance}} used")], {"h": 8, "w": 12, "x": 0, "y": 4}, "bytes", "Used memory."),
         timeseries(4, "Hit ratio", [(f"{hit} / ({hit} + {miss})", "{{instance}}")], {"h": 8, "w": 12, "x": 12, "y": 4}, "percentunit", "Hits divided by hits plus misses. Empty when there is no keyspace traffic."),
@@ -362,7 +362,7 @@ def redis_panels() -> list[dict]:
 def rabbitmq_panels() -> list[dict]:
     sel = f"{JOB},{INST}"
     return [
-        stat(1, "Exporter up", f"rabbitmq_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert RabbitMQDown. Empty until job rabbitmq is scraped."),
+        stat(1, "Exporter up", f"rabbitmq_up{{{sel}}}", {"h": 4, "w": 6, "x": 0, "y": 0}, "none", UP, "Matches alert RabbitMQDown. Empty until an exporter exposes rabbitmq_up."),
         stat(2, "Connections", f"sum by(instance) (rabbitmq_connections{{{sel}}})", {"h": 4, "w": 6, "x": 6, "y": 0}, "short", [("green", None)], "Broker connections from rabbitmq_exporter."),
         timeseries(3, "Queue messages", [(f"sum by(instance) (rabbitmq_queue_messages{{{sel}}})", "{{instance}}")], {"h": 8, "w": 12, "x": 0, "y": 4}, "short", "Messages in queues."),
         timeseries(4, "Ready vs unacked", [(f"sum by(instance) (rabbitmq_queue_messages_ready{{{sel}}})", "{{instance}} ready"), (f"sum by(instance) (rabbitmq_queue_messages_unacknowledged{{{sel}}})", "{{instance}} unacked")], {"h": 8, "w": 12, "x": 12, "y": 4}, "short", "Ready messages and messages waiting for acknowledgement."),
@@ -374,7 +374,7 @@ def fail2ban_panels() -> list[dict]:
     return [
         stat(
             1, "Current bans",
-            f"sum(fail2ban_current_bans{{{sel}}})",
+            f"sum(f2b_jail_banned_current{{{sel}}})",
             {"h": 4, "w": 6, "x": 0, "y": 0},
             "short",
             [("green", None), ("yellow", 1), ("red", 10)],
@@ -382,7 +382,7 @@ def fail2ban_panels() -> list[dict]:
         ),
         stat(
             2, "Failed attempts",
-            f"sum(fail2ban_failed_current{{{sel}}})",
+            f"sum(f2b_jail_failed_current{{{sel}}})",
             {"h": 4, "w": 6, "x": 6, "y": 0},
             "short",
             [("green", None), ("yellow", 5), ("red", 20)],
@@ -390,21 +390,21 @@ def fail2ban_panels() -> list[dict]:
         ),
         timeseries(
             3, "Active bans per jail",
-            [(f"fail2ban_current_bans{{{sel}}}", "{{jail}}")],
+            [(f"f2b_jail_banned_current{{{sel}}}", "{{jail}}")],
             {"h": 8, "w": 12, "x": 0, "y": 4},
             "short",
             "Currently banned IPs broken down by jail.",
         ),
         timeseries(
             4, "New bans per hour",
-            [(f"increase(fail2ban_banned_total{{{sel}}}[1h])", "{{jail}}")],
+            [(f"increase(f2b_jail_banned_total{{{sel}}}[1h])", "{{jail}}")],
             {"h": 8, "w": 12, "x": 12, "y": 4},
             "short",
             "Ban rate per jail over the last hour. Matches alert Fail2banHighAttackRate (>10 in 5 min).",
         ),
         timeseries(
             5, "Failed attempts per jail",
-            [(f"fail2ban_failed_current{{{sel}}}", "{{jail}}")],
+            [(f"f2b_jail_failed_current{{{sel}}}", "{{jail}}")],
             {"h": 8, "w": 24, "x": 0, "y": 12},
             "short",
             "Current failed attempts tracked by each jail.",
@@ -485,7 +485,7 @@ def build() -> dict[str, dict]:
             "fail2ban jail activity: current bans, failed attempts, ban rate. Select the scrape job in the $job dropdown.",
             ["monitoring", "security", "fail2ban"],
             fail2ban_panels(),
-            "fail2ban_current_bans",
+            "f2b_up",
         ),
     }
 
