@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "HTTP probe success, status, duration, and certificate expiry. Job name: blackbox.",
+  "description": "HTTP probe success, status, duration, and certificate expiry. Select the probe job in the $job dropdown.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -293,7 +293,12 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -301,6 +306,7 @@
         "definition": "label_values(probe_success, job)",
         "hide": 0,
         "includeAll": true,
+        "label": "Job",
         "multi": true,
         "name": "job",
         "options": [],
@@ -311,9 +317,7 @@
         "refresh": 2,
         "regex": "",
         "sort": 1,
-        "type": "query",
-        "label": "Job",
-        "allValue": ".*"
+        "type": "query"
       },
       {
         "allValue": ".*",

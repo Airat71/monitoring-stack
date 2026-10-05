@@ -608,7 +608,12 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -616,6 +621,7 @@
         "definition": "label_values(node_uname_info, job)",
         "hide": 0,
         "includeAll": true,
+        "label": "Job",
         "multi": true,
         "name": "job",
         "options": [],
@@ -626,9 +632,7 @@
         "refresh": 2,
         "regex": "",
         "sort": 1,
-        "type": "query",
-        "label": "Job",
-        "allValue": ".*"
+        "type": "query"
       },
       {
         "allValue": ".*",

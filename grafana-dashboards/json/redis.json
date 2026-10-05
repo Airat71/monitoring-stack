@@ -2,7 +2,7 @@
   "annotations": {
     "list": []
   },
-  "description": "redis_exporter metrics. Stays empty until a scrape job named redis exists.",
+  "description": "redis_exporter metrics. Select the scrape job in the $job dropdown.",
   "editable": false,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -368,7 +368,12 @@
   "templating": {
     "list": [
       {
-        "current": {},
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
         "datasource": {
           "type": "prometheus",
           "uid": "prometheus"
@@ -376,6 +381,7 @@
         "definition": "label_values(redis_up, job)",
         "hide": 0,
         "includeAll": true,
+        "label": "Job",
         "multi": true,
         "name": "job",
         "options": [],
@@ -386,9 +392,7 @@
         "refresh": 2,
         "regex": "",
         "sort": 1,
-        "type": "query",
-        "label": "Job",
-        "allValue": ".*"
+        "type": "query"
       },
       {
         "allValue": ".*",
