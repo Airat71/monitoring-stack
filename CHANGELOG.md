@@ -12,6 +12,8 @@ All notable changes to Monitoring Stack are documented here.
 - README no longer says fail2ban ban events are visible in Grafana. The alert rule remains; the exporter is separate.
 - `HighLoadAverage` now matches `node_load1` to the CPU count on `instance`. Extra target labels such as `hostname` no longer drop the series.
 - Blackbox dashboard: added `$job` variable (`label_values(probe_success, job)`) so the dashboard works with any Prometheus job name, not just `job="blackbox"`. The `$instance` variable now filters within the selected job(s). All panel queries updated accordingly.
+- All eight dashboards now have a `$job` variable as the primary filter. `$instance` cascades from `$job`. Hardcoded job names (`node-exporter`, `prometheus`, `nginx`, `postgresql`, `redis`, `rabbitmq`) removed from every panel query. Dashboards work with any job name configured in `prometheus.yml`.
+- Removed `docs/PRODUCTION_CHECKLIST.md` (was in Russian, content covered by SECURITY.md and OPERATIONS.md).
 
 ---
 
