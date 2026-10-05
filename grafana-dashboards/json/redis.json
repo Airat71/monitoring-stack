@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Matches alert RedisDown. Empty until job redis is scraped.",
+      "description": "Matches alert RedisDown. Empty until an exporter exposes redis_up.",
       "fieldConfig": {
         "defaults": {
           "color": {

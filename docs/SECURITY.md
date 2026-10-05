@@ -19,4 +19,4 @@
 
 ## fail2ban
 
-- fail2ban monitoring is optional. Ensure fail2ban is configured with sensible bantime and findtime; see FAIL2BAN_ENHANCED.md.
+- fail2ban monitoring is optional. Dashboard `ms-fail2ban` and alert `Fail2banHighAttackRate` stay empty until an exporter exposes `f2b_up`. See FAIL2BAN_ENHANCED.md.

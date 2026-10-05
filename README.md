@@ -7,7 +7,7 @@
 
 Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanager · Ansible · fail2ban.
 
-One-command deploy, 8 original dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
+One-command deploy, 9 original dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
 
 If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack) helps others find it.
 
@@ -18,9 +18,9 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 | Component | Details |
 |-----------|---------|
 | **Core stack** | Prometheus · Grafana · Alertmanager · Node Exporter · Blackbox Exporter |
-| **Security** | fail2ban alert rule; the exporter is installed separately |
+| **Security** | fail2ban dashboard and alert; the exporter is installed separately |
 | **Ansible automation** | One-command full deployment + Node Exporter on remote hosts |
-| **Dashboards** | 8 original JSON dashboards (see below) |
+| **Dashboards** | 9 original JSON dashboards (see below) |
 | **Alerts** | 16 alert rules (see docs/MONITORING.md) |
 | **Multi-server** | Monitor N servers from one Grafana instance |
 | **Backups** | Automated backup script with optional cron |
@@ -30,7 +30,7 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 
 ## Dashboards
 
-8 original dashboards — written for this stack, current panel types, render on Grafana 13 without additional configuration. MIT licensed, datasource uid `prometheus`.
+9 original dashboards — written for this stack, current panel types, render on Grafana 13 without additional configuration. MIT licensed, datasource uid `prometheus`.
 
 | Dashboard | What it covers | After `docker compose up` |
 |-----------|----------------|--------------------------|
@@ -38,10 +38,11 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 | System Overview | CPU, memory, disk, load, uptime | Live |
 | Prometheus | Scrape duration, TSDB, Alertmanager link | Live |
 | Blackbox | Probe success, HTTP status, TLS expiry | Live |
-| Nginx | Connections and request rate | Empty until exporter with job `nginx` |
-| PostgreSQL | Sessions, transactions, database size | Empty until exporter with job `postgresql` |
-| Redis | Memory, hit ratio, commands/sec | Empty until exporter with job `redis` |
-| RabbitMQ | Connections and queue depth | Empty until exporter with job `rabbitmq` |
+| Nginx | Connections and request rate | Empty until an exporter exposes `nginx_up` |
+| PostgreSQL | Sessions, transactions, database size | Empty until an exporter exposes `pg_up` |
+| Redis | Memory, hit ratio, commands/sec | Empty until an exporter exposes `redis_up` |
+| RabbitMQ | Connections and queue depth | Empty until an exporter exposes `rabbitmq_up` |
+| Fail2ban | Current bans, failed attempts, ban rate | Empty until an exporter exposes `f2b_up` |
 
 ---
 

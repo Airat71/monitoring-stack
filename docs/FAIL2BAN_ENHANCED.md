@@ -4,10 +4,10 @@ fail2ban metrics are optional. The repository includes the alert rule, a Grafana
 
 ## Components
 
-- **fail2ban-exporter:** Exposes Prometheus metrics (`fail2ban_current_bans`, `fail2ban_banned_total`, `fail2ban_failed_current`). Use a community exporter such as `braedon/fail2ban-prometheus-exporter` or any exporter that exposes these metric names.
-- **Prometheus:** Add a scrape job for the exporter (for example `localhost:9199` when the exporter runs on the monitoring server).
-- **Dashboard:** `grafana-dashboards/json/fail2ban.json` — provisioned automatically. Select the scrape job in the `$job` dropdown. Shows current bans, failed attempts, ban rate per jail.
-- **Alert:** `Fail2banHighAttackRate` in `prometheus-grafana/alerts.yml` fires when `increase(fail2ban_banned_total[5m]) > 10`.
+- **fail2ban-exporter:** Exposes Prometheus metrics `f2b_up`, `f2b_jail_banned_current`, `f2b_jail_failed_current`, and `f2b_jail_banned_total`. The image is `registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3`. It listens on port 9191.
+- **Prometheus:** Add a scrape job for the exporter. The job name can be anything. Example target: `fail2ban-exporter:9191`.
+- **Dashboard:** `grafana-dashboards/json/fail2ban.json` — provisioned automatically. Select the scrape job in the `$job` dropdown. Shows current bans, failed attempts, and ban rate per jail.
+- **Alert:** `Fail2banHighAttackRate` in `prometheus-grafana/alerts.yml` fires when `increase(f2b_jail_banned_total[5m]) > 10`.
 
 ## Jails (example)
 

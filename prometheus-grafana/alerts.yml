@@ -121,7 +121,7 @@ groups:
   - name: fail2ban
     rules:
       - alert: Fail2banHighAttackRate
-        expr: increase(fail2ban_banned_total[5m]) > 10
+        expr: increase(f2b_jail_banned_total[5m]) > 10
         labels:
           severity: warning
         annotations:

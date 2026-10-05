@@ -14,7 +14,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Empty until a scrape job named nginx is added.",
+      "description": "Empty until an exporter exposes nginx_up.",
       "fieldConfig": {
         "defaults": {
           "color": {
