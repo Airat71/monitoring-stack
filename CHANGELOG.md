@@ -9,7 +9,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- `grafana-dashboards/json/fail2ban.json` (`ms-fail2ban`): 5 panels — current bans, failed attempts, ban rate per jail, failed attempts per jail. Provisioned automatically; select the exporter scrape job in `$job`.
+- `grafana-dashboards/json/fail2ban.json` (`ms-fail2ban`): 7 panels — current bans (sparkline), failed attempts (sparkline), attacks last 24 h (sparkline), total attacks blocked (cumulative counter), ban rate per jail, failed attempts per jail, and active bans per jail. Provisioned automatically; select the exporter scrape job in `$job`.
+- `scripts/build-dashboards.py`: `stat()` accepts an optional `graph_mode` parameter (`"area"` for sparklines, `"none"` for raw counters).
 
 ### Changed
 - All nine dashboards replaced with original JSON in `grafana-dashboards/json/`. Source of truth is `scripts/build-dashboards.py`; `scripts/fetch-dashboards.sh` regenerates them instead of downloading from grafana.com.
