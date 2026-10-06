@@ -18,8 +18,6 @@ fail2ban metrics are optional. The repository includes the alert rule, a Grafana
 
 ## Enable
 
-Running the exporter as `user: root` violates the principle of least privilege (CIS Docker Benchmark). The correct approach uses a dedicated group with socket access.
-
 ### Step 1 — Host setup (required once, for all deployment options)
 
 Create a dedicated system group and configure fail2ban to grant it access to the socket on startup.
@@ -47,7 +45,7 @@ ls -la /var/run/fail2ban/fail2ban.sock
 # srwxrw---- 1 root fail2ban-export 0 ... fail2ban.sock
 ```
 
-The `-` prefix on `ExecStartPost` means a non-zero exit will not fail the fail2ban service. The loop waits up to 10 seconds for the socket to appear before setting permissions.
+The `-` prefix on `ExecStartPost` prevents a race condition from failing the service: fail2ban creates the socket asynchronously, so the loop waits up to 10 seconds before setting permissions.
 
 ### Option A — docker run (standalone)
 
@@ -97,7 +95,7 @@ fail2ban-exporter:
   volumes:
     - /var/run/fail2ban/fail2ban.sock:/var/run/fail2ban/fail2ban.sock:ro
   group_add:
-    - "988"
+    - "988"   # least-privilege: dedicated group, not user: root
   read_only: true
   security_opt:
     - no-new-privileges:true
