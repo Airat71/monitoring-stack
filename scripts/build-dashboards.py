@@ -82,7 +82,16 @@ def gauge(panel_id: int, title: str, expr: str, grid: dict, unit: str, steps: li
     }
 
 
-def stat(panel_id: int, title: str, expr: str, grid: dict, unit: str, steps: list, description: str) -> dict:
+def stat(
+    panel_id: int,
+    title: str,
+    expr: str,
+    grid: dict,
+    unit: str,
+    steps: list,
+    description: str,
+    graph_mode: str = "none",
+) -> dict:
     return {
         "datasource": DS,
         "description": description,
@@ -98,7 +107,7 @@ def stat(panel_id: int, title: str, expr: str, grid: dict, unit: str, steps: lis
         "id": panel_id,
         "options": {
             "colorMode": "value",
-            "graphMode": "none",
+            "graphMode": graph_mode,
             "justifyMode": "auto",
             "orientation": "auto",
             "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": False},
@@ -379,6 +388,7 @@ def fail2ban_panels() -> list[dict]:
             "short",
             [("green", None), ("yellow", 1), ("red", 10)],
             "IPs currently banned across all jails.",
+            graph_mode="area",
         ),
         stat(
             2, "Failed attempts",
@@ -387,6 +397,25 @@ def fail2ban_panels() -> list[dict]:
             "short",
             [("green", None), ("yellow", 5), ("red", 20)],
             "Failed login attempts currently tracked across all jails.",
+            graph_mode="area",
+        ),
+        stat(
+            6, "Attacks last 24 h",
+            f"sum(increase(f2b_jail_banned_total{{{sel}}}[24h]))",
+            {"h": 4, "w": 6, "x": 12, "y": 0},
+            "short",
+            [("green", None), ("yellow", 100), ("red", 500)],
+            "Bans issued in the last 24 hours. Spikes indicate active brute-force campaigns.",
+            graph_mode="area",
+        ),
+        stat(
+            7, "Total attacks blocked",
+            f"sum(f2b_jail_banned_total{{{sel}}})",
+            {"h": 4, "w": 6, "x": 18, "y": 0},
+            "short",
+            [("red", None)],
+            "Cumulative bans since fail2ban started. Resets on service restart.",
+            graph_mode="none",
         ),
         timeseries(
             3, "Active bans per jail",
