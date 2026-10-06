@@ -3,16 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'screenshots/**'
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'screenshots/**'
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -93,3 +85,18 @@ jobs:
         with:
           scandir: ./scripts
           severity: warning
+
+  ci-pass:
+    name: CI passed
+    runs-on: ubuntu-latest
+    needs: [validate-stack, validate-yaml, shellcheck]
+    if: always()
+    steps:
+      - name: All CI jobs passed or skipped
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]] || \
+             [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "One or more CI jobs failed or were cancelled"
+            exit 1
+          fi
+          echo "All CI jobs passed or were skipped"
