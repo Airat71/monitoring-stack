@@ -18,50 +18,18 @@ fail2ban metrics are optional. The repository includes the alert rule, a Grafana
 
 ## Enable
 
-### Option A — systemd (simplest)
+Running the exporter as `user: root` violates the principle of least privilege (CIS Docker Benchmark). The correct approach uses a dedicated group with socket access.
 
-Run the exporter as a systemd service on the target host. Suitable when Prometheus scrapes the host directly.
+### Step 1 — Host setup (required once, for all deployment options)
 
-```bash
-docker run -d \
-  --name fail2ban-exporter \
-  --restart unless-stopped \
-  -p 127.0.0.1:9191:9191 \
-  -v /var/run/fail2ban/fail2ban.sock:/var/run/fail2ban/fail2ban.sock:ro \
-  --group-add $(getent group fail2ban-export | cut -d: -f3) \
-  --read-only \
-  --security-opt no-new-privileges:true \
-  registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3
-```
-
-Then add the scrape job to `prometheus.yml` and reload:
-
-```yaml
-- job_name: 'fail2ban'
-  static_configs:
-    - targets: ['host.docker.internal:9191']
-      labels:
-        instance: 'your-server'
-  scrape_interval: 30s
-  scrape_timeout: 10s
-```
-
-```bash
-curl -X POST http://127.0.0.1:9090/-/reload
-```
-
-### Option B — Docker Compose (production, least-privilege)
-
-Running the exporter as `user: root` is a security anti-pattern (violates CIS Docker Benchmark). The correct approach is `group_add` with a dedicated group that has read-write access to the fail2ban socket.
-
-#### Step 1 — Create a dedicated system group on the host
+Create a dedicated system group and configure fail2ban to grant it access to the socket on startup.
 
 ```bash
 sudo groupadd -r fail2ban-export
 getent group fail2ban-export   # note the GID, e.g. 988
 ```
 
-#### Step 2 — systemd drop-in: set socket group on fail2ban startup
+Create a systemd drop-in that sets socket permissions after fail2ban starts:
 
 ```bash
 sudo mkdir -p /etc/systemd/system/fail2ban.service.d
@@ -79,9 +47,45 @@ ls -la /var/run/fail2ban/fail2ban.sock
 # srwxrw---- 1 root fail2ban-export 0 ... fail2ban.sock
 ```
 
-#### Step 3 — Add to docker-compose.yml
+The `-` prefix on `ExecStartPost` means a non-zero exit will not fail the fail2ban service. The loop waits up to 10 seconds for the socket to appear before setting permissions.
 
-Replace `988` with the actual GID from Step 1.
+### Option A — docker run (standalone)
+
+Suitable when the exporter runs on a host that Prometheus scrapes directly (not inside the same Compose stack).
+
+Replace `988` with the GID from Step 1.
+
+```bash
+docker run -d \
+  --name fail2ban-exporter \
+  --restart unless-stopped \
+  -p 127.0.0.1:9191:9191 \
+  -v /var/run/fail2ban/fail2ban.sock:/var/run/fail2ban/fail2ban.sock:ro \
+  --group-add 988 \
+  --read-only \
+  --security-opt no-new-privileges:true \
+  registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3
+```
+
+Add the scrape job to `prometheus.yml` and reload:
+
+```yaml
+- job_name: 'fail2ban'
+  static_configs:
+    - targets: ['host.docker.internal:9191']
+      labels:
+        instance: 'your-server'
+  scrape_interval: 30s
+  scrape_timeout: 10s
+```
+
+```bash
+curl -X POST http://127.0.0.1:9090/-/reload
+```
+
+### Option B — Docker Compose (integrated stack)
+
+Add the service to your `docker-compose.yml`. Replace `988` with the GID from Step 1.
 
 ```yaml
 fail2ban-exporter:
@@ -105,7 +109,7 @@ fail2ban-exporter:
         memory: 32M
 ```
 
-#### Step 4 — Add scrape job to prometheus.yml
+Add the scrape job to `prometheus.yml`:
 
 ```yaml
 - job_name: 'fail2ban'
@@ -117,7 +121,7 @@ fail2ban-exporter:
   scrape_timeout: 10s
 ```
 
-#### Step 5 — Start and reload
+Start and reload:
 
 ```bash
 docker compose up -d fail2ban-exporter
