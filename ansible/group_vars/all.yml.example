@@ -1,5 +1,10 @@
 # Copy to group_vars/all.yml. Secrets → Ansible Vault. Do not commit all.yml.
 
+# Source address allowed to scrape Node Exporter on extra hosts.
+# Default: ansible_host of the single monitoring_server.
+# Set this when NAT makes the scrape come from a different address.
+# node_exporter_allow_from: "203.0.113.10"
+
 # --- Optional exporters ---
 # The playbook does not install nginx, PostgreSQL, Redis, or RabbitMQ exporters
 # and does not add scrape jobs for them. Dashboards for those services stay empty

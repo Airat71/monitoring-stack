@@ -3,7 +3,7 @@
 ## InstanceDown
 
 - **Cause:** Target not reachable (node-exporter down, network, firewall).
-- **Check:** From the monitoring server, `curl http://<inventory-ip>:9100/metrics`. On an extra host the exporter listens on that IP, not on `127.0.0.1`. On the monitoring server itself, Prometheus uses the Docker name `node-exporter:9100`.
+- **Check:** From the monitoring server, `curl http://<inventory-ip>:9100/metrics`. On an extra host the exporter listens on that IP, not on `127.0.0.1`, and iptables drops other sources. A timeout from the monitoring server usually means `node_exporter_allow_from` is not the address that host sees. On the monitoring server itself, Prometheus uses the Docker name `node-exporter:9100`.
 - **Fix:** Restart node-exporter on the target; check firewall and inventory `ansible_host`.
 
 ## Grafana "No data"

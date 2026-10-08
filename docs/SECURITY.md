@@ -3,7 +3,7 @@
 ## Binding and access
 
 - **Localhost-only:** Prometheus, Grafana, Alertmanager, Blackbox, and the monitoring server's Node Exporter are bound to `127.0.0.1` in `prometheus-grafana/docker-compose.yml`. `127.0.0.1:9100` is this loopback publish. It is not a server address, and Prometheus reaches that exporter on the Docker network as `node-exporter:9100`. Do not publish these ports on a public address.
-- **Remote Node Exporter:** On hosts in `monitored_nodes`, port 9100 listens on the inventory IP so the monitoring server can scrape it. If that IP is reachable from untrusted networks, allow TCP 9100 only from the monitoring server. Metrics include hostnames, mount points, and interface addresses.
+- **Remote Node Exporter:** On hosts in `monitored_nodes`, port 9100 listens on the inventory IPv4 address. The playbook adds an iptables chain that accepts that port only from the monitoring server (`node_exporter_allow_from`, otherwise that server's `ansible_host`) and drops other sources. SSH and every other port stay on the host's existing policy. Docker publishes the port through its own chain, so the rule is attached to both `INPUT` and `DOCKER-USER`. IPv6 to that port is dropped. Metrics still include hostnames, mount points, and interface addresses.
 - **Access from outside:** Open an SSH tunnel. Example: `ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@monitoring-server`.
 - **Grafana:** The stack does not start without `GRAFANA_PASSWORD` in `.env`. Do not use `admin` or any password from an example. Enable HTTPS if you put a reverse proxy in front.
 

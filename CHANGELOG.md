@@ -22,6 +22,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Remote Node Exporter listens on the inventory IPv4 address so Prometheus can scrape it. The monitoring server still publishes `127.0.0.1:9100`.
 - The systemd unit no longer uses `/host/proc`. The Docker install on extra hosts passes `--path.rootfs=/rootfs`.
 - The first Ansible run fills an empty `GRAFANA_PASSWORD` and reloads Prometheus. It does not recreate the whole stack on every run.
+- Node Exporter on extra hosts accepts TCP 9100 only from the monitoring server. The container drops all capabilities. Alertmanager config is checked with `amtool`, and a Telegram token is not printed in the play recap.
 
 ### Removed
 - `docs/PRODUCTION_CHECKLIST.md` — content merged into SECURITY.md and OPERATIONS.md.

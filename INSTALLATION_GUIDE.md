@@ -38,7 +38,7 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
    ```bash
    cp ansible/inventory.example.yml ansible/inventory.yml
    ```
-   Replace `192.168.1.10` with the IP of the machine that will run Grafana. Leave `monitored_nodes` empty until you want extra hosts. For an extra host, set `ansible_host` to the IPv4 address the monitoring server can open. Node Exporter on that host listens on that address at port 9100. Do not commit `inventory.yml`.
+   Replace `192.168.1.10` with the IP of the machine that will run Grafana. Leave `monitored_nodes` empty until you want extra hosts. For an extra host, set `ansible_host` to the IPv4 address the monitoring server can open. Node Exporter on that host listens on that address at port 9100, and iptables accepts the port only from the monitoring server. The host must have `iptables`. Do not commit `inventory.yml`.
 
 3. **Configure variables**
    ```bash

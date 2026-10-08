@@ -1,0 +1,12 @@
+[Unit]
+Description=Restrict Node Exporter to the monitoring server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/node-exporter-firewall.sh
+
+[Install]
+WantedBy=multi-user.target

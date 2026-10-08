@@ -1,0 +1,15 @@
+[Unit]
+Description=Node Exporter container
+After=docker.service node-exporter-firewall.service
+Requires=docker.service node-exporter-firewall.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+ExecStartPre=+/usr/local/sbin/node-exporter-firewall.sh
+ExecStart=/usr/bin/docker start -a node-exporter
+ExecStop=/usr/bin/docker stop node-exporter
+
+[Install]
+WantedBy=multi-user.target

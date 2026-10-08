@@ -65,12 +65,24 @@
     dest: "{{ monitoring_base_dir }}/blackbox.yml"
     mode: "0644"
 
+- name: Check Telegram settings before writing Alertmanager config
+  ansible.builtin.assert:
+    that:
+      - telegram_bot_token is defined
+      - telegram_chat_id is defined
+      - telegram_bot_token | length > 0
+      - telegram_chat_id | string is match('^[0-9]+$')
+    fail_msg: "Set both telegram_bot_token and a numeric telegram_chat_id, or leave both unset. Store the token in Ansible Vault."
+  when: telegram_bot_token is defined or telegram_chat_id is defined
+  no_log: true
+
 - name: Copy Alertmanager config
   ansible.builtin.template:
     src: alertmanager.yml.j2
     dest: "{{ monitoring_base_dir }}/alertmanager.yml"
     mode: "0644"
   when: deploy_alertmanager | default(true) | bool
+  no_log: true
 
 - name: Validate Prometheus config (promtool)
   ansible.builtin.command:
@@ -109,6 +121,25 @@
   register: promtool_rules
   changed_when: false
   failed_when: promtool_rules.rc != 0
+
+- name: Validate Alertmanager config
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - --rm
+      - --entrypoint
+      - amtool
+      - -v
+      - "{{ monitoring_base_dir }}/alertmanager.yml:/tmp/alertmanager.yml:ro"
+      - "{{ alertmanager_image | default('prom/alertmanager:v0.34.1') }}"
+      - check-config
+      - /tmp/alertmanager.yml
+  register: amtool_config
+  changed_when: false
+  failed_when: amtool_config.rc != 0
+  no_log: true
+  when: deploy_alertmanager | default(true) | bool
 
 - name: Ensure .env exists from example
   ansible.builtin.copy:

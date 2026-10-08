@@ -1,16 +1,67 @@
 ---
 # Node Exporter for hosts in monitored_nodes.
-# The monitoring server does not use this role. Its exporter is the Compose
-# service and stays on 127.0.0.1:9100.
+# The monitoring server does not use this role. Its exporter stays on 127.0.0.1:9100.
 
-- name: Require an IPv4 address for Node Exporter
+- name: Inventory has one monitoring server when no explicit allow address is set
   ansible.builtin.assert:
     that:
-      - node_exporter_bind_ip is match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
+      - groups['monitoring_server'] | default([]) | length == 1
     fail_msg: >-
-      Set ansible_host to the IPv4 address the monitoring server uses to reach
-      this node. Node Exporter listens on that address, port {{ node_exporter_port }}.
-      127.0.0.1 would accept connections only from this node, so Prometheus could not scrape it.
+      Set node_exporter_allow_from to the source address Prometheus uses,
+      or keep exactly one host in monitoring_server.
+  when: node_exporter_allow_from is not defined
+
+- name: Allow scrapes only from the monitoring server
+  ansible.builtin.set_fact:
+    node_exporter_allow_from: "{{ hostvars[groups['monitoring_server'] | first]['ansible_host'] }}"
+  when: node_exporter_allow_from is not defined
+
+- name: Node Exporter addresses are IPv4
+  ansible.builtin.assert:
+    that:
+      - node_exporter_bind_ip is match('^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}$')
+      - node_exporter_allow_from is match('^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])(?:\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])){3}$')
+      - node_exporter_bind_ip != '127.0.0.1'
+    fail_msg: >-
+      ansible_host and node_exporter_allow_from must be IPv4 addresses.
+      127.0.0.1 on this host would hide the exporter from Prometheus.
+      The monitoring server's own exporter is a different service and stays on loopback.
+
+- name: Install Node Exporter firewall files
+  block:
+    - name: Install firewall script
+      ansible.builtin.copy:
+        src: node-exporter-firewall.sh
+        dest: /usr/local/sbin/node-exporter-firewall.sh
+        owner: root
+        group: root
+        mode: "0750"
+
+    - name: Install firewall settings
+      ansible.builtin.template:
+        src: node-exporter-firewall.env.j2
+        dest: /etc/node-exporter-firewall.env
+        owner: root
+        group: root
+        mode: "0640"
+
+    - name: Install firewall unit
+      ansible.builtin.template:
+        src: node-exporter-firewall.service.j2
+        dest: /etc/systemd/system/node-exporter-firewall.service
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Apply Node Exporter firewall
+      ansible.builtin.command: /usr/local/sbin/node-exporter-firewall.sh
+      changed_when: true
+
+    - name: Enable firewall unit
+      ansible.builtin.systemd:
+        name: node-exporter-firewall.service
+        enabled: true
+        daemon_reload: true
 
 - name: Create node_exporter system user
   ansible.builtin.user:
@@ -33,7 +84,9 @@
   ansible.builtin.get_url:
     url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
     dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
-    mode: "0644"
+    owner: root
+    group: root
+    mode: "0640"
     checksum: "{{ node_exporter_checksum }}"
   when: node_exporter_install_method != 'docker'
 
@@ -82,10 +135,23 @@
     - node_exporter_install_method != 'docker'
     - node_exporter_unit.changed
 
+- name: Docker is installed for the container method
+  ansible.builtin.stat:
+    path: /usr/bin/docker
+  register: node_exporter_docker_bin
+  when: node_exporter_install_method == 'docker'
+
+- name: Require /usr/bin/docker
+  ansible.builtin.assert:
+    that:
+      - node_exporter_docker_bin.stat.exists
+    fail_msg: "Install Docker or set node_exporter_install_method to systemd."
+  when: node_exporter_install_method == 'docker'
+
 - name: Read Node Exporter container revision
   ansible.builtin.command:
     argv:
-      - docker
+      - /usr/bin/docker
       - inspect
       - -f
       - '{% raw %}{{index .Config.Labels "monitoring.revision"}}{% endraw %}'
@@ -95,29 +161,46 @@
   failed_when: false
   when: node_exporter_install_method == 'docker'
 
-- name: Replace Node Exporter container when version or address changed
+- name: Recreate Node Exporter container when version or address changed
   when:
     - node_exporter_install_method == 'docker'
     - node_exporter_inspect.rc != 0 or node_exporter_inspect.stdout != (node_exporter_version ~ '-' ~ node_exporter_bind_ip ~ ':' ~ node_exporter_port)
   block:
+    - name: Stop Node Exporter unit before replacing the container
+      ansible.builtin.systemd:
+        name: node-exporter.service
+        state: stopped
+      failed_when: false
+
     - name: Remove previous Node Exporter container
       ansible.builtin.command:
-        argv: [docker, rm, -f, node-exporter]
+        argv: [/usr/bin/docker, rm, -f, node-exporter]
       changed_when: true
       failed_when: false
 
-    - name: Start Node Exporter container
+    - name: Create Node Exporter container
       ansible.builtin.command:
         argv:
-          - docker
-          - run
-          - -d
+          - /usr/bin/docker
+          - create
           - --name
           - node-exporter
           - --restart
-          - unless-stopped
+          - "no"
           - --memory
           - 64m
+          - --pids-limit
+          - "64"
+          - --cap-drop
+          - ALL
+          - --security-opt
+          - no-new-privileges:true
+          - --log-driver
+          - json-file
+          - --log-opt
+          - max-size=5m
+          - --log-opt
+          - max-file=2
           - --label
           - "monitoring.revision={{ node_exporter_version }}-{{ node_exporter_bind_ip }}:{{ node_exporter_port }}"
           - -p
@@ -134,3 +217,20 @@
           - --path.rootfs=/rootfs
           - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
           - --web.listen-address=:9100
+
+- name: Install Docker unit for Node Exporter
+  ansible.builtin.template:
+    src: node-exporter-docker.service.j2
+    dest: /etc/systemd/system/node-exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  when: node_exporter_install_method == 'docker'
+
+- name: Start Node Exporter after the firewall
+  ansible.builtin.systemd:
+    name: node-exporter.service
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: node_exporter_install_method == 'docker'
