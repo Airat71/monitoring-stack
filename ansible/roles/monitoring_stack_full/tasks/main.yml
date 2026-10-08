@@ -32,6 +32,7 @@
     path: "{{ playbook_dir }}/../grafana-dashboards/json"
   register: dashboard_json_dir_stat
   delegate_to: localhost
+  become: false
   run_once: true
 
 - name: Copy Grafana dashboard JSON folder
@@ -52,18 +53,21 @@
     src: prometheus.yml.j2
     dest: "{{ monitoring_base_dir }}/prometheus.yml"
     mode: "0644"
+  register: prometheus_config_file
 
 - name: Copy alert rules
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../prometheus-grafana/alerts.yml"
     dest: "{{ monitoring_base_dir }}/alerts.yml"
     mode: "0644"
+  register: alert_rules_file
 
 - name: Copy Blackbox config
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../prometheus-grafana/blackbox.yml"
     dest: "{{ monitoring_base_dir }}/blackbox.yml"
     mode: "0644"
+  register: blackbox_config_file
 
 - name: Check Telegram settings before writing Alertmanager config
   ansible.builtin.assert:
@@ -82,6 +86,7 @@
     dest: "{{ monitoring_base_dir }}/alertmanager.yml"
     mode: "0644"
   when: deploy_alertmanager | default(true) | bool
+  register: alertmanager_config_file
   no_log: true
 
 - name: Validate Prometheus config (promtool)
@@ -192,6 +197,34 @@
   register: compose_up
   changed_when: "'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout or 'Recreating' in compose_up.stdout or 'Pull' in compose_up.stdout"
 
+# Single-file bind mounts keep the old inode after Ansible replaces a file,
+# so a reload would not see new content. Restart the service that owns the file.
+- name: Restart Prometheus after config or rules change
+  ansible.builtin.command: docker compose restart prometheus
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - prometheus_config_file.changed or alert_rules_file.changed
+  changed_when: true
+
+- name: Restart Alertmanager after config change
+  ansible.builtin.command: docker compose restart alertmanager
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - deploy_alertmanager | default(true) | bool
+    - alertmanager_config_file.changed
+  changed_when: true
+
+- name: Restart Blackbox exporter after config change
+  ansible.builtin.command: docker compose restart blackbox-exporter
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - deploy_blackbox | default(true) | bool
+    - blackbox_config_file.changed
+  changed_when: true
+
 - name: Wait for Prometheus
   ansible.builtin.wait_for:
     host: 127.0.0.1
@@ -199,11 +232,14 @@
     delay: 3
     timeout: 90
 
-- name: Reload Prometheus configuration
+- name: Check Prometheus readiness
   ansible.builtin.uri:
-    url: http://127.0.0.1:9090/-/reload
-    method: POST
-    status_code: [200, 204]
+    url: http://127.0.0.1:9090/-/ready
+    status_code: 200
+  register: prometheus_ready
+  retries: 10
+  delay: 3
+  until: prometheus_ready.status == 200
 
 - name: Include backup script and cron (optional)
   ansible.builtin.include_tasks: backup.yml

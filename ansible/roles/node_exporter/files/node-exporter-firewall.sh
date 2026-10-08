@@ -34,6 +34,7 @@ fi
 
 iptables -N NODE_EXPORTER 2>/dev/null || true
 iptables -F NODE_EXPORTER
+iptables -A NODE_EXPORTER -i lo -p tcp --dport "$PORT" -j RETURN
 iptables -A NODE_EXPORTER -p tcp --dport "$PORT" -s "$ALLOW" -j RETURN
 iptables -A NODE_EXPORTER -p tcp --dport "$PORT" -j DROP
 
