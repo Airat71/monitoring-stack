@@ -37,11 +37,11 @@ scrape_configs:
       - targets: ['node-exporter:9100']
         labels:
           instance: 'monitoring-server'
-      {% for host in groups.get('monitored_nodes', []) %}
-      - targets: ['{{ hostvars[host].ansible_host | default(host) }}:9100']
+{% for host in groups.get('monitored_nodes', []) %}
+      - targets: ['{{ hostvars[host].node_exporter_bind_ip | default(hostvars[host].ansible_host | default(host)) }}:9100']
         labels:
           instance: '{{ host }}'
-      {% endfor %}
+{% endfor %}
     scrape_interval: 30s
 
 {% if deploy_blackbox | default(true) %}

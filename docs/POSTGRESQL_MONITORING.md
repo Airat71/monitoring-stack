@@ -1,4 +1,5 @@
 # PostgreSQL monitoring (optional)
 
-- Enable with `include_postgresql: true` and set `postgresql_host` (and credentials via vault). Add a postgres-exporter container or systemd service and a Prometheus scrape job. The PostgreSQL dashboard is included; it shows "No data" until the exporter is running and scraped.
-- Use a dedicated DB user with limited privileges (e.g. pg_monitor).
+The PostgreSQL dashboard is in `grafana-dashboards/json/`. It stays empty until PostgreSQL metrics are scraped.
+
+The playbook flag `include_postgresql` does not install an exporter and does not add a scrape job. Run postgres_exporter yourself, with a dedicated user such as `pg_monitor`, add a job to `prometheus.yml`, then reload Prometheus.

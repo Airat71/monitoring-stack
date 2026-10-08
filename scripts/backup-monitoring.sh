@@ -12,11 +12,11 @@ cd "$MONITORING_DIR"
 
 TS=$(date +%Y%m%d-%H%M%S)
 
-# Prometheus TSDB (can be large)
-docker compose exec -T prometheus tar czf - -C /prometheus . 2>/dev/null > "$BACKUP_DIR/prometheus-${TS}.tar.gz" || true
+# Prometheus TSDB (can be large). A failed archive must fail the script.
+docker compose exec -T prometheus tar czf - -C /prometheus . > "$BACKUP_DIR/prometheus-${TS}.tar.gz"
 
 # Grafana (dashboards, DB)
-docker compose exec -T grafana tar czf - -C /var/lib grafana 2>/dev/null > "$BACKUP_DIR/grafana-${TS}.tar.gz" || true
+docker compose exec -T grafana tar czf - -C /var/lib grafana > "$BACKUP_DIR/grafana-${TS}.tar.gz"
 
 # Configs (small, useful for restore)
 CONFIG_DIR="$BACKUP_DIR/config-$TS"

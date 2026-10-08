@@ -87,6 +87,8 @@ services:
     container_name: node-exporter
     restart: unless-stopped
     ports:
+      # Loopback on the monitoring server. Prometheus scrapes node-exporter:9100
+      # inside monitoring-net. Remote hosts are different: see docs/MULTI_SERVER.md.
       - "127.0.0.1:9100:9100"
     command:
       - '--path.procfs=/host/proc'

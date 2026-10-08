@@ -1,15 +1,24 @@
 [Unit]
 Description=Prometheus Node Exporter
-After=network.target
+After=network-online.target node-exporter-firewall.service
+Wants=network-online.target
+Requires=node-exporter-firewall.service
 
 [Service]
+User=node_exporter
+Group=node_exporter
 Type=simple
-ExecStart={{ node_exporter_install_dir | default('/opt/node_exporter') }}/node_exporter \
-  --path.procfs=/host/proc \
-  --path.sysfs=/host/sys \
-  --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+ExecStartPre=+/usr/local/sbin/node-exporter-firewall.sh
+ExecStart={{ node_exporter_install_dir }}/node_exporter --web.listen-address={{ node_exporter_bind_ip }}:{{ node_exporter_port }}
 Restart=always
 RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictRealtime=true
+LockPersonality=true
 
 [Install]
 WantedBy=multi-user.target

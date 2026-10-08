@@ -1,5 +1,5 @@
-# Example inventory. Copy to inventory.yml and set ansible_host. Do not commit inventory.yml.
-# Do not commit inventory.yml if it contains real hostnames/IPs.
+# Copy to inventory.yml and set ansible_host to your server IP. Do not commit inventory.yml.
+# 192.168.1.10 below is a placeholder. Replace it before running the playbook.
 
 all:
   children:
@@ -10,14 +10,14 @@ all:
       vars:
         monitoring_install_dir: /opt/monitoring
 
+    # Extra hosts are scraped by Prometheus on the monitoring server.
+    # ansible_host must be the IPv4 address that server can open.
+    # Node Exporter listens on that address at port 9100.
+    # Leave the group empty when you only monitor the machine that runs Grafana.
     monitored_nodes:
-      hosts:
-        web1:
-          ansible_host: 192.168.1.11
-        web2:
-          ansible_host: 192.168.1.12
-      vars:
-        node_exporter_install_method: docker
+      hosts: {}
+      # web1:
+      #   ansible_host: 192.168.1.11
 
   vars:
     ansible_user: ubuntu

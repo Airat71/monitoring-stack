@@ -32,6 +32,7 @@
     path: "{{ playbook_dir }}/../grafana-dashboards/json"
   register: dashboard_json_dir_stat
   delegate_to: localhost
+  become: false
   run_once: true
 
 - name: Copy Grafana dashboard JSON folder
@@ -52,18 +53,32 @@
     src: prometheus.yml.j2
     dest: "{{ monitoring_base_dir }}/prometheus.yml"
     mode: "0644"
+  register: prometheus_config_file
 
 - name: Copy alert rules
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../prometheus-grafana/alerts.yml"
     dest: "{{ monitoring_base_dir }}/alerts.yml"
     mode: "0644"
+  register: alert_rules_file
 
 - name: Copy Blackbox config
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../prometheus-grafana/blackbox.yml"
     dest: "{{ monitoring_base_dir }}/blackbox.yml"
     mode: "0644"
+  register: blackbox_config_file
+
+- name: Check Telegram settings before writing Alertmanager config
+  ansible.builtin.assert:
+    that:
+      - telegram_bot_token is defined
+      - telegram_chat_id is defined
+      - telegram_bot_token | length > 0
+      - telegram_chat_id | string is match('^[0-9]+$')
+    fail_msg: "Set both telegram_bot_token and a numeric telegram_chat_id, or leave both unset. Store the token in Ansible Vault."
+  when: telegram_bot_token is defined or telegram_chat_id is defined
+  no_log: true
 
 - name: Copy Alertmanager config
   ansible.builtin.template:
@@ -71,6 +86,8 @@
     dest: "{{ monitoring_base_dir }}/alertmanager.yml"
     mode: "0644"
   when: deploy_alertmanager | default(true) | bool
+  register: alertmanager_config_file
+  no_log: true
 
 - name: Validate Prometheus config (promtool)
   ansible.builtin.command:
@@ -110,6 +127,25 @@
   changed_when: false
   failed_when: promtool_rules.rc != 0
 
+- name: Validate Alertmanager config
+  ansible.builtin.command:
+    argv:
+      - docker
+      - run
+      - --rm
+      - --entrypoint
+      - amtool
+      - -v
+      - "{{ monitoring_base_dir }}/alertmanager.yml:/tmp/alertmanager.yml:ro"
+      - "{{ alertmanager_image | default('prom/alertmanager:v0.34.1') }}"
+      - check-config
+      - /tmp/alertmanager.yml
+  register: amtool_config
+  changed_when: false
+  failed_when: amtool_config.rc != 0
+  no_log: true
+  when: deploy_alertmanager | default(true) | bool
+
 - name: Ensure .env exists from example
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../prometheus-grafana/.env.example"
@@ -118,18 +154,92 @@
     force: false
   when: skip_env_create is not defined or not skip_env_create
 
-- name: Start monitoring stack (idempotent)
-  ansible.builtin.shell: "docker compose up -d"
+- name: Read Grafana password from .env
+  ansible.builtin.command:
+    argv:
+      - awk
+      - -F=
+      - '/^GRAFANA_PASSWORD=/{print substr($0, index($0,"=")+1)}'
+      - "{{ monitoring_base_dir }}/.env"
+  register: grafana_password_file
+  changed_when: false
+  no_log: true
+
+- name: Generate Grafana admin password when .env has none
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
+    grafana_password_generated: true
+  when:
+    - grafana_admin_password is not defined
+    - (grafana_password_file.stdout | trim) | length == 0
+  no_log: true
+
+- name: Store Grafana admin password
+  ansible.builtin.lineinfile:
+    path: "{{ monitoring_base_dir }}/.env"
+    regexp: '^GRAFANA_PASSWORD='
+    line: "GRAFANA_PASSWORD={{ grafana_admin_password }}"
+    mode: "0600"
+  when:
+    - grafana_admin_password is defined
+    - (grafana_password_file.stdout | trim) | length == 0
+  no_log: true
+
+- name: Show generated Grafana admin password
+  ansible.builtin.debug:
+    msg: "Grafana admin user is admin. Password generated for this install: {{ grafana_admin_password }}. It is stored in {{ monitoring_base_dir }}/.env and is not changed on the next run."
+  when: grafana_password_generated | default(false)
+
+- name: Start monitoring stack
+  ansible.builtin.command: docker compose up -d
   args:
     chdir: "{{ monitoring_base_dir }}"
   register: compose_up
   changed_when: "'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout or 'Recreating' in compose_up.stdout or 'Pull' in compose_up.stdout"
 
-- name: Restart stack after config or compose change
-  ansible.builtin.shell: "docker compose up -d --force-recreate"
+# Single-file bind mounts keep the old inode after Ansible replaces a file,
+# so a reload would not see new content. Restart the service that owns the file.
+- name: Restart Prometheus after config or rules change
+  ansible.builtin.command: docker compose restart prometheus
   args:
     chdir: "{{ monitoring_base_dir }}"
-  when: compose_up.changed
+  when:
+    - prometheus_config_file.changed or alert_rules_file.changed
+  changed_when: true
+
+- name: Restart Alertmanager after config change
+  ansible.builtin.command: docker compose restart alertmanager
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - deploy_alertmanager | default(true) | bool
+    - alertmanager_config_file.changed
+  changed_when: true
+
+- name: Restart Blackbox exporter after config change
+  ansible.builtin.command: docker compose restart blackbox-exporter
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - deploy_blackbox | default(true) | bool
+    - blackbox_config_file.changed
+  changed_when: true
+
+- name: Wait for Prometheus
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9090
+    delay: 3
+    timeout: 90
+
+- name: Check Prometheus readiness
+  ansible.builtin.uri:
+    url: http://127.0.0.1:9090/-/ready
+    status_code: 200
+  register: prometheus_ready
+  retries: 10
+  delay: 3
+  until: prometheus_ready.status == 200
 
 - name: Include backup script and cron (optional)
   ansible.builtin.include_tasks: backup.yml
