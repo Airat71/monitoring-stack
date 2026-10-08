@@ -15,7 +15,15 @@ fail2ban metrics are optional. The repository includes alert rules, a Grafana da
 
 The default socket is `srw-------` and owned by root. uid 0 inside the container can open it. Do not `chgrp` or `chmod g+rw` the socket for this image. A group-writable socket gives every member of that group the full control API, and this image does not need that change.
 
-Do not mount the socket **file**. If the file is missing when the container is created, Docker creates a directory at that path and fail2ban can no longer bind its socket. Mount the runtime **directory** instead. After `systemctl restart fail2ban` the new socket appears in that directory.
+Do not mount the socket **file**. If the file is missing when the container is created, Docker creates a directory at that path and fail2ban can no longer bind its socket. Mount the runtime **directory** instead. By default systemd removes `/var/run/fail2ban` when fail2ban stops and creates a new one on start. A container that mounted the old directory keeps a deleted one: `f2b_up` stays 0 after `systemctl restart fail2ban` until the exporter container restarts. Keep the directory across restarts with a drop-in:
+
+```bash
+sudo mkdir -p /etc/systemd/system/fail2ban.service.d
+printf '[Service]\nRuntimeDirectoryPreserve=yes\n' | sudo tee /etc/systemd/system/fail2ban.service.d/preserve-runtime-dir.conf
+sudo systemctl daemon-reload && sudo systemctl restart fail2ban
+```
+
+Apply the drop-in before you start the exporter, or restart the exporter once after it. Checked on Ubuntu 24.04 (arm64) with fail2ban 1.0.2: with the drop-in, `f2b_up` returns to 1 after `systemctl restart fail2ban` and after `stop` then `start`; without it, `f2b_up` stays 0 after the restart.
 
 ## Jails (example)
 
@@ -84,7 +92,7 @@ curl -X POST http://127.0.0.1:9090/-/reload
 
 `f2b_up` must be `1`. The Prometheus target can show UP while `f2b_up` is `0`: the process is serving metrics but cannot use the socket. `Fail2banSocketDown` covers that case. `docker exec fail2ban-exporter id` reports uid 0 with this image.
 
-In `docker logs fail2ban-exporter`, a successful start prints the fail2ban version. An IP list appears in those logs only when the exporter cannot parse a socket reply.
+In `docker logs fail2ban-exporter`, a successful start prints `successfully connected to fail2ban socket` and the fail2ban version.
 
 ## Standalone container
 
