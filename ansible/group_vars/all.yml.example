@@ -1,6 +1,9 @@
 # Copy to group_vars/all.yml. Secrets → Ansible Vault. Do not commit all.yml.
 
 # --- Optional exporters ---
+# The playbook does not install nginx, PostgreSQL, Redis, or RabbitMQ exporters
+# and does not add scrape jobs for them. Dashboards for those services stay empty
+# until you add the exporter and a job yourself.
 include_nginx: false
 include_postgresql: false
 include_redis: false

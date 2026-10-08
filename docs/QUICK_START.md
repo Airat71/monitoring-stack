@@ -33,16 +33,16 @@ ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@yo
 
 ## Option B — Same stack on a server, with Ansible
 
-Deploys this stack to your server and Node Exporter on additional hosts:
+Deploys this stack to your server. Additional hosts stay out of the example until you add them.
 
 ```bash
 cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
 cp ansible/inventory.example.yml ansible/inventory.yml
-# edit both files — set server IPs, SSH user, Telegram bot token
+# replace 192.168.1.10 with your server IP
 cd ansible && ansible-playbook -i inventory.yml playbook.yml
 ```
 
-See [INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md) for a full walkthrough.
+If `GRAFANA_PASSWORD` is empty, the playbook generates it and prints it once. Full steps: [INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md).
 
 ---
 

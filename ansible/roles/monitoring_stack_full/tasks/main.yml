@@ -118,18 +118,61 @@
     force: false
   when: skip_env_create is not defined or not skip_env_create
 
-- name: Start monitoring stack (idempotent)
-  ansible.builtin.shell: "docker compose up -d"
+- name: Read Grafana password from .env
+  ansible.builtin.command:
+    argv:
+      - awk
+      - -F=
+      - '/^GRAFANA_PASSWORD=/{print substr($0, index($0,"=")+1)}'
+      - "{{ monitoring_base_dir }}/.env"
+  register: grafana_password_file
+  changed_when: false
+  no_log: true
+
+- name: Generate Grafana admin password when .env has none
+  ansible.builtin.set_fact:
+    grafana_admin_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=24') }}"
+    grafana_password_generated: true
+  when:
+    - grafana_admin_password is not defined
+    - (grafana_password_file.stdout | trim) | length == 0
+  no_log: true
+
+- name: Store Grafana admin password
+  ansible.builtin.lineinfile:
+    path: "{{ monitoring_base_dir }}/.env"
+    regexp: '^GRAFANA_PASSWORD='
+    line: "GRAFANA_PASSWORD={{ grafana_admin_password }}"
+    mode: "0600"
+  when:
+    - grafana_admin_password is defined
+    - (grafana_password_file.stdout | trim) | length == 0
+  no_log: true
+
+- name: Show generated Grafana admin password
+  ansible.builtin.debug:
+    msg: "Grafana admin user is admin. Password generated for this install: {{ grafana_admin_password }}. It is stored in {{ monitoring_base_dir }}/.env and is not changed on the next run."
+  when: grafana_password_generated | default(false)
+
+- name: Start monitoring stack
+  ansible.builtin.command: docker compose up -d
   args:
     chdir: "{{ monitoring_base_dir }}"
   register: compose_up
   changed_when: "'Creating' in compose_up.stdout or 'Starting' in compose_up.stdout or 'Recreating' in compose_up.stdout or 'Pull' in compose_up.stdout"
 
-- name: Restart stack after config or compose change
-  ansible.builtin.shell: "docker compose up -d --force-recreate"
-  args:
-    chdir: "{{ monitoring_base_dir }}"
-  when: compose_up.changed
+- name: Wait for Prometheus
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 9090
+    delay: 3
+    timeout: 90
+
+- name: Reload Prometheus configuration
+  ansible.builtin.uri:
+    url: http://127.0.0.1:9090/-/reload
+    method: POST
+    status_code: [200, 204]
 
 - name: Include backup script and cron (optional)
   ansible.builtin.include_tasks: backup.yml

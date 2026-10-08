@@ -1,3 +1,5 @@
 # Redis monitoring (optional)
 
-- Enable with `include_redis: true` and set `redis_host`. Deploy redis-exporter and add a Prometheus scrape job. The Redis Overview dashboard is included; it shows data once the exporter is scraped.
+The Redis dashboard is in `grafana-dashboards/json/`. It stays empty until Redis metrics are scraped.
+
+The playbook flag `include_redis` does not install an exporter and does not add a scrape job. Run redis_exporter yourself and add a job to `prometheus.yml`, then reload Prometheus.

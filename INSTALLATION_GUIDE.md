@@ -38,16 +38,16 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
    ```bash
    cp ansible/inventory.example.yml ansible/inventory.yml
    ```
-   Edit `ansible/inventory.yml`: set `ansible_host` for `monitoring_server` (your monitoring host)
-   and for `monitored_nodes` (hosts that will run Node Exporter). Do not commit `inventory.yml`.
+   Replace `192.168.1.10` with the IP of the machine that will run Grafana. Leave `monitored_nodes` empty until you want extra hosts. For an extra host, set `ansible_host` to the IPv4 address the monitoring server can open. Node Exporter on that host listens on that address at port 9100. Do not commit `inventory.yml`.
 
 3. **Configure variables**
    ```bash
    cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
    ```
-   Set optional services (`include_postgresql`, `include_redis`, etc.).
    For automated backups set `deploy_backup_script: true`.
+   Nginx, PostgreSQL, Redis, and RabbitMQ flags do not install exporters.
    Telegram is optional. Set `telegram_bot_token` and numeric `telegram_chat_id` in Ansible Vault. Leave them unset to start Alertmanager without Telegram. Never commit `all.yml`.
+   If `GRAFANA_PASSWORD` in `.env` is empty, the first playbook run generates one and prints it. Later runs keep the value already in `.env`.
 
 4. **Dashboards**
    The nine dashboards in `grafana-dashboards/json/` are already in the repository. The playbook copies them. Run `./scripts/fetch-dashboards.sh` only after editing `scripts/build-dashboards.py`.

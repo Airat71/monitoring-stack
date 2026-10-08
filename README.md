@@ -62,14 +62,16 @@ docker compose up -d
 
 ## Full Deploy with Ansible (single command)
 
-Deploys the complete stack to your server and optionally installs Node Exporter on any number of additional hosts:
+Deploys the stack to your server. Extra hosts are commented out in the example inventory; add them when you want multi-server metrics.
 
 ```bash
 cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
 cp ansible/inventory.example.yml ansible/inventory.yml
-# edit both files — set your server IP, SSH user, Telegram token
+# replace 192.168.1.10 with your server IP
 cd ansible && ansible-playbook -i inventory.yml playbook.yml
 ```
+
+The first run generates a Grafana admin password and prints it when `.env` does not already have one. Node Exporter on the monitoring server stays at `127.0.0.1:9100`. An extra host listens on its inventory IP, port 9100.
 
 Step-by-step: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
 

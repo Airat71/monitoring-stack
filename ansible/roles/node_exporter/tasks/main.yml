@@ -1,67 +1,136 @@
 ---
-# Install Node Exporter on monitored nodes (for multi-server scraping)
-# Option A: Docker container
-# Option B: systemd service (binary) — better for nodes that don't run Docker
+# Node Exporter for hosts in monitored_nodes.
+# The monitoring server does not use this role. Its exporter is the Compose
+# service and stays on 127.0.0.1:9100.
 
-- name: Create node exporter directory
+- name: Require an IPv4 address for Node Exporter
+  ansible.builtin.assert:
+    that:
+      - node_exporter_bind_ip is match('^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$')
+    fail_msg: >-
+      Set ansible_host to the IPv4 address the monitoring server uses to reach
+      this node. Node Exporter listens on that address, port {{ node_exporter_port }}.
+      127.0.0.1 would accept connections only from this node, so Prometheus could not scrape it.
+
+- name: Create node_exporter system user
+  ansible.builtin.user:
+    name: node_exporter
+    system: true
+    shell: /bin/false
+    create_home: false
+  when: node_exporter_install_method != 'docker'
+
+- name: Create Node Exporter directory
   ansible.builtin.file:
-    path: "{{ node_exporter_install_dir | default('/opt/node_exporter') }}"
+    path: "{{ node_exporter_install_dir }}"
     state: directory
+    owner: root
+    group: root
     mode: "0755"
+  when: node_exporter_install_method != 'docker'
 
 - name: Download Node Exporter
   ansible.builtin.get_url:
-    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version | default('1.12.1') }}/node_exporter-{{ node_exporter_version | default('1.12.1') }}.linux-amd64.tar.gz"
-    dest: "/tmp/node_exporter.tar.gz"
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
     mode: "0644"
-  when: node_exporter_install_method | default('docker') != 'docker'
+    checksum: "{{ node_exporter_checksum }}"
+  when: node_exporter_install_method != 'docker'
 
 - name: Unarchive Node Exporter
   ansible.builtin.unarchive:
-    src: "/tmp/node_exporter.tar.gz"
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
     dest: "/tmp"
     remote_src: true
-    creates: "/tmp/node_exporter-{{ node_exporter_version | default('1.12.1') }}.linux-amd64/node_exporter"
-  when: node_exporter_install_method | default('docker') != 'docker'
+    creates: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+  when: node_exporter_install_method != 'docker'
 
 - name: Install Node Exporter binary
   ansible.builtin.copy:
-    src: "/tmp/node_exporter-{{ node_exporter_version | default('1.12.1') }}.linux-amd64/node_exporter"
-    dest: "{{ node_exporter_install_dir | default('/opt/node_exporter') }}/node_exporter"
+    src: "/tmp/node_exporter-{{ node_exporter_version }}.linux-amd64/node_exporter"
+    dest: "{{ node_exporter_install_dir }}/node_exporter"
+    owner: root
+    group: root
     mode: "0755"
     remote_src: true
-  when: node_exporter_install_method | default('docker') != 'docker'
+  when: node_exporter_install_method != 'docker'
 
-- name: Create systemd unit for Node Exporter
+- name: Install systemd unit for Node Exporter
   ansible.builtin.template:
     src: node_exporter.service.j2
-    dest: "/etc/systemd/system/node_exporter.service"
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
     mode: "0644"
-  when: node_exporter_install_method | default('docker') != 'docker'
+  register: node_exporter_unit
+  when: node_exporter_install_method != 'docker'
 
-- name: Enable and start Node Exporter (systemd)
+- name: Enable Node Exporter
   ansible.builtin.systemd:
     name: node_exporter
-    state: started
     enabled: true
-    daemon_reload: true
-  when: node_exporter_install_method | default('docker') != 'docker'
-
-# Option: run via Docker on node (simpler if node already has Docker)
-- name: Run Node Exporter container
-  community.docker.docker_container:
-    name: node-exporter
-    image: "prom/node-exporter:{{ node_exporter_version | default('v1.12.1') }}"
     state: started
-    restart_policy: unless-stopped
-    ports:
-      - "127.0.0.1:{{ node_exporter_port | default(9100) }}:9100"
-    volumes:
-      - "/proc:/host/proc:ro"
-      - "/sys:/host/sys:ro"
-      - "/:/rootfs:ro"
-    command:
-      - "--path.procfs=/host/proc"
-      - "--path.sysfs=/host/sys"
-      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
-  when: node_exporter_install_method | default('docker') == 'docker'
+    daemon_reload: true
+  when: node_exporter_install_method != 'docker'
+
+- name: Restart Node Exporter after unit change
+  ansible.builtin.systemd:
+    name: node_exporter
+    state: restarted
+    daemon_reload: true
+  when:
+    - node_exporter_install_method != 'docker'
+    - node_exporter_unit.changed
+
+- name: Read Node Exporter container revision
+  ansible.builtin.command:
+    argv:
+      - docker
+      - inspect
+      - -f
+      - '{% raw %}{{index .Config.Labels "monitoring.revision"}}{% endraw %}'
+      - node-exporter
+  register: node_exporter_inspect
+  changed_when: false
+  failed_when: false
+  when: node_exporter_install_method == 'docker'
+
+- name: Replace Node Exporter container when version or address changed
+  when:
+    - node_exporter_install_method == 'docker'
+    - node_exporter_inspect.rc != 0 or node_exporter_inspect.stdout != (node_exporter_version ~ '-' ~ node_exporter_bind_ip ~ ':' ~ node_exporter_port)
+  block:
+    - name: Remove previous Node Exporter container
+      ansible.builtin.command:
+        argv: [docker, rm, -f, node-exporter]
+      changed_when: true
+      failed_when: false
+
+    - name: Start Node Exporter container
+      ansible.builtin.command:
+        argv:
+          - docker
+          - run
+          - -d
+          - --name
+          - node-exporter
+          - --restart
+          - unless-stopped
+          - --memory
+          - 64m
+          - --label
+          - "monitoring.revision={{ node_exporter_version }}-{{ node_exporter_bind_ip }}:{{ node_exporter_port }}"
+          - -p
+          - "{{ node_exporter_bind_ip }}:{{ node_exporter_port }}:9100"
+          - -v
+          - /proc:/host/proc:ro
+          - -v
+          - /sys:/host/sys:ro
+          - -v
+          - /:/rootfs:ro
+          - "prom/node-exporter:v{{ node_exporter_version }}"
+          - --path.procfs=/host/proc
+          - --path.sysfs=/host/sys
+          - --path.rootfs=/rootfs
+          - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+          - --web.listen-address=:9100
