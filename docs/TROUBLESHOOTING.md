@@ -23,6 +23,12 @@
 - **Cause:** Long retention, too many targets, or heavy queries.
 - **Fix:** Reduce `prometheus_retention` (e.g. 15d); limit dashboard refresh; add more resources to the monitoring host.
 
+## Fail2banSocketDown or an empty Fail2ban dashboard
+
+- **Cause:** The exporter is not scraped, or it cannot open the fail2ban socket. A missing socket file that was mounted directly becomes a directory, and fail2ban then fails to start.
+- **Check:** `test -S /var/run/fail2ban/fail2ban.sock` and `curl -s http://127.0.0.1:9191/metrics | grep '^f2b_up'`. `f2b_up 0` with a Prometheus target of UP means the process is running and the socket call failed.
+- **Fix:** Mount `/var/run/fail2ban` (the directory), scrape `fail2ban-exporter:9191` from the Compose network, and reload Prometheus. Do not chmod the socket. See FAIL2BAN_ENHANCED.md.
+
 ## Blackbox probe failed
 
 - **Cause:** Target URL unreachable (DNS, HTTP error, timeout).

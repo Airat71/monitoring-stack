@@ -128,6 +128,15 @@ groups:
           summary: "High fail2ban ban rate on {{ $labels.instance }}"
           description: "More than 10 bans in 5 minutes. The fail2ban exporter must be scraped for this rule to have data."
 
+      - alert: Fail2banSocketDown
+        expr: f2b_up == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "fail2ban exporter cannot read the socket on {{ $labels.instance }}"
+          description: "f2b_up is 0 for 5 minutes. The exporter process can still be up, so the Prometheus target stays UP. Check that /var/run/fail2ban/fail2ban.sock is a socket and that the container mounts that directory."
+
   - name: optional-exporters
     rules:
       - alert: PostgreSQLDown
