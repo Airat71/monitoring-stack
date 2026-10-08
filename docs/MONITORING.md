@@ -8,7 +8,7 @@ The stack ships these alert rules in `prometheus-grafana/alerts.yml`:
 - **Resources:** HighCPUUsage, HighCPUUsageCritical, HighMemoryUsage, DiskSpaceLow, DiskSpaceCritical, HighLoadAverage, FilesystemReadonly
 - **Probes:** BlackboxProbeFailed
 - **Self-monitoring:** PrometheusConfigReloadFailure, PrometheusNotConnectedToAlertmanager
-- **fail2ban:** Fail2banHighAttackRate (if fail2ban exporter is used)
+- **fail2ban:** Fail2banHighAttackRate, Fail2banSocketDown (inactive until an exporter exposes `f2b_up`)
 - **Optional:** PostgreSQLDown, RabbitMQDown, RedisDown (when those exporters are enabled)
 
 ## Alertmanager

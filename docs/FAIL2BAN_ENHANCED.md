@@ -1,13 +1,29 @@
 # fail2ban monitoring
 
-fail2ban metrics are optional. The repository includes the alert rule, a Grafana dashboard (`grafana-dashboards/json/fail2ban.json`, uid `ms-fail2ban`), and this guide. It does not include a fail2ban exporter — install one separately (see Enable below).
+fail2ban metrics are optional. The repository includes alert rules, a Grafana dashboard (`grafana-dashboards/json/fail2ban.json`, uid `ms-fail2ban`), and this guide. It does not install fail2ban or the exporter. Add the exporter with the steps below.
 
 ## Components
 
-- **fail2ban-exporter:** Exposes Prometheus metrics `f2b_up`, `f2b_jail_banned_current`, `f2b_jail_failed_current`, and `f2b_jail_banned_total`. The image is `registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3`. It listens on port 9191.
-- **Prometheus:** Add a scrape job for the exporter. The job name can be anything. Example target: `fail2ban-exporter:9191`.
-- **Dashboard:** `grafana-dashboards/json/fail2ban.json` — provisioned automatically. Select the scrape job in the `$job` dropdown. Panels: current bans (sparkline), failed attempts (sparkline), attacks last 24 h (sparkline), total attacks blocked (cumulative since restart), ban rate per jail, failed attempts per jail, active bans per jail.
-- **Alert:** `Fail2banHighAttackRate` in `prometheus-grafana/alerts.yml` fires when `increase(f2b_jail_banned_total[5m]) > 10`.
+- **Exporter image:** `registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3`. It listens on port 9191. This image has no `USER` instruction, so the process runs as **uid 0**. `group_add` does not change the uid. Do not describe this container as non-root.
+- **What it reads:** the fail2ban control socket, not log files. The socket accepts the same commands as `fail2ban-client` (status, ban, unban, stop). A mount of the socket is not a read-only view of the logs.
+- **Metrics:** counts and the jail name (`f2b_up`, `f2b_jail_banned_current`, `f2b_jail_failed_current`, `f2b_jail_banned_total`, plus config gauges). Banned IP addresses are not metric labels.
+- **Prometheus:** scrape `fail2ban-exporter:9191` on the Compose network `monitoring-net`. The job name can be anything.
+- **Dashboard:** select that job in the `$job` dropdown.
+- **Alerts:** `Fail2banHighAttackRate` fires when `increase(f2b_jail_banned_total[5m]) > 10`. `Fail2banSocketDown` fires when `f2b_up == 0` for 5 minutes. Both stay inactive until the exporter is scraped.
+
+## Do not weaken the socket
+
+The default socket is `srw-------` and owned by root. uid 0 inside the container can open it. Do not `chgrp` or `chmod g+rw` the socket for this image. A group-writable socket gives every member of that group the full control API, and this image does not need that change.
+
+Do not mount the socket **file**. If the file is missing when the container is created, Docker creates a directory at that path and fail2ban can no longer bind its socket. Mount the runtime **directory** instead. By default systemd removes `/var/run/fail2ban` when fail2ban stops and creates a new one on start. A container that mounted the old directory keeps a deleted one: `f2b_up` stays 0 after `systemctl restart fail2ban` until the exporter container restarts. Keep the directory across restarts with a drop-in:
+
+```bash
+sudo mkdir -p /etc/systemd/system/fail2ban.service.d
+printf '[Service]\nRuntimeDirectoryPreserve=yes\n' | sudo tee /etc/systemd/system/fail2ban.service.d/preserve-runtime-dir.conf
+sudo systemctl daemon-reload && sudo systemctl restart fail2ban
+```
+
+Apply the drop-in before you start the exporter, or restart the exporter once after it. Checked on Ubuntu 24.04 (arm64) with fail2ban 1.0.2: with the drop-in, `f2b_up` returns to 1 after `systemctl restart fail2ban` and after `stop` then `start`; without it, `f2b_up` stays 0 after the restart.
 
 ## Jails (example)
 
@@ -16,74 +32,21 @@ fail2ban metrics are optional. The repository includes the alert rule, a Grafana
 - **nginx-limit-req** — rate limiting
 - **recidive** — repeat offenders (long ban)
 
-## Enable
+## Enable on this Compose stack
 
-### Step 1 — Host setup (required once, for all deployment options)
+Prometheus in `prometheus-grafana/docker-compose.yml` runs on `monitoring-net`. It cannot open the host's `127.0.0.1:9191`, and this stack does not define `host.docker.internal`. Scrape the exporter by its Compose service name.
 
-Create a dedicated system group and configure fail2ban to grant it access to the socket on startup.
-
-```bash
-sudo groupadd -r fail2ban-export
-getent group fail2ban-export   # note the GID, e.g. 988
-```
-
-Create a systemd drop-in that sets socket permissions after fail2ban starts:
+### 1. Confirm the socket exists
 
 ```bash
-sudo mkdir -p /etc/systemd/system/fail2ban.service.d
-sudo tee /etc/systemd/system/fail2ban.service.d/socket-group.conf > /dev/null << 'EOF'
-[Service]
-ExecStartPost=-/bin/sh -c 'i=0; while [ ! -S /var/run/fail2ban/fail2ban.sock ] && [ $i -lt 20 ]; do sleep 0.5; i=$((i+1)); done; chgrp fail2ban-export /var/run/fail2ban/fail2ban.sock && chmod g+rw /var/run/fail2ban/fail2ban.sock'
-EOF
-sudo systemctl daemon-reload && sudo systemctl restart fail2ban
+test -S /var/run/fail2ban/fail2ban.sock && ls -l /var/run/fail2ban/fail2ban.sock
 ```
 
-Verify:
+Stop if that path is missing or is a directory. Install and start fail2ban first. Expected mode is owner-only, for example `srw------- root root`.
 
-```bash
-ls -la /var/run/fail2ban/fail2ban.sock
-# srwxrw---- 1 root fail2ban-export 0 ... fail2ban.sock
-```
+### 2. Add the service
 
-The `-` prefix on `ExecStartPost` prevents a race condition from failing the service: fail2ban creates the socket asynchronously, so the loop waits up to 10 seconds before setting permissions.
-
-### Option A — docker run (standalone)
-
-Suitable when the exporter runs on a host that Prometheus scrapes directly (not inside the same Compose stack).
-
-Replace `988` with the GID from Step 1.
-
-```bash
-docker run -d \
-  --name fail2ban-exporter \
-  --restart unless-stopped \
-  -p 127.0.0.1:9191:9191 \
-  -v /var/run/fail2ban/fail2ban.sock:/var/run/fail2ban/fail2ban.sock:ro \
-  --group-add 988 \
-  --read-only \
-  --security-opt no-new-privileges:true \
-  registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3
-```
-
-Add the scrape job to `prometheus.yml` and reload:
-
-```yaml
-- job_name: 'fail2ban'
-  static_configs:
-    - targets: ['host.docker.internal:9191']
-      labels:
-        instance: 'your-server'
-  scrape_interval: 30s
-  scrape_timeout: 10s
-```
-
-```bash
-curl -X POST http://127.0.0.1:9090/-/reload
-```
-
-### Option B — Docker Compose (integrated stack)
-
-Add the service to your `docker-compose.yml`. Replace `988` with the GID from Step 1.
+`read_only`, `no-new-privileges`, the localhost port, and the memory limit are the controls this image actually honors. They do not drop uid 0.
 
 ```yaml
 fail2ban-exporter:
@@ -93,9 +56,7 @@ fail2ban-exporter:
   ports:
     - "127.0.0.1:9191:9191"
   volumes:
-    - /var/run/fail2ban/fail2ban.sock:/var/run/fail2ban/fail2ban.sock:ro
-  group_add:
-    - "988"   # least-privilege: dedicated group, not user: root
+    - /var/run/fail2ban:/var/run/fail2ban:ro
   read_only: true
   security_opt:
     - no-new-privileges:true
@@ -107,7 +68,9 @@ fail2ban-exporter:
         memory: 32M
 ```
 
-Add the scrape job to `prometheus.yml`:
+### 3. Scrape it from Prometheus
+
+Add this job to `prometheus.yml`:
 
 ```yaml
 - job_name: 'fail2ban'
@@ -119,9 +82,32 @@ Add the scrape job to `prometheus.yml`:
   scrape_timeout: 10s
 ```
 
-Start and reload:
+### 4. Start and check
 
 ```bash
 docker compose up -d fail2ban-exporter
+curl -s http://127.0.0.1:9191/metrics | grep '^f2b_up'
 curl -X POST http://127.0.0.1:9090/-/reload
 ```
+
+`f2b_up` must be `1`. The Prometheus target can show UP while `f2b_up` is `0`: the process is serving metrics but cannot use the socket. `Fail2banSocketDown` covers that case. `docker exec fail2ban-exporter id` reports uid 0 with this image.
+
+In `docker logs fail2ban-exporter`, a successful start prints `successfully connected to fail2ban socket` and the fail2ban version.
+
+## Standalone container
+
+Use this only when the program that scrapes metrics runs on the host and opens `127.0.0.1:9191` itself. The Prometheus service in this repository does not.
+
+```bash
+test -S /var/run/fail2ban/fail2ban.sock
+docker run -d \
+  --name fail2ban-exporter \
+  --restart unless-stopped \
+  -p 127.0.0.1:9191:9191 \
+  -v /var/run/fail2ban:/var/run/fail2ban:ro \
+  --read-only \
+  --security-opt no-new-privileges:true \
+  registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3
+```
+
+Scrape `127.0.0.1:9191` from the host. Do not point a containerized Prometheus at `host.docker.internal:9191`: the published port is bound to host loopback, and `host.docker.internal` is a bridge address.

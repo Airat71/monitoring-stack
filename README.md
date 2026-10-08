@@ -21,7 +21,7 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 | **Security** | fail2ban dashboard and alert; the exporter is installed separately |
 | **Ansible automation** | One-command full deployment + Node Exporter on remote hosts |
 | **Dashboards** | 9 original JSON dashboards (see below) |
-| **Alerts** | 16 alert rules (see docs/MONITORING.md) |
+| **Alerts** | 17 alert rules (see docs/MONITORING.md) |
 | **Multi-server** | Monitor N servers from one Grafana instance |
 | **Backups** | Automated backup script with optional cron |
 | **Documentation** | 20 guides: deployment, security, operations, runbook, troubleshooting |
@@ -93,12 +93,12 @@ Step-by-step: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
 
 ## Alerts
 
-16 alert rules covering:
+17 alert rules covering:
 
 - Host down / unreachable
 - CPU · memory · disk thresholds
 - Service unavailable (HTTP, TCP probes)
-- fail2ban ban events
+- fail2ban ban events and a dead exporter socket (`f2b_up == 0`)
 - Prometheus self-monitoring
 
 See [`alerts/alertmanager.example.yml`](alerts/alertmanager.example.yml) for routing configuration.

@@ -19,4 +19,5 @@
 
 ## fail2ban
 
-- fail2ban monitoring is optional. Dashboard `ms-fail2ban` and alert `Fail2banHighAttackRate` stay empty until an exporter exposes `f2b_up`. See FAIL2BAN_ENHANCED.md.
+- fail2ban monitoring is optional. Dashboard `ms-fail2ban` and the fail2ban alerts stay empty until an exporter exposes `f2b_up`. See FAIL2BAN_ENHANCED.md.
+- Image `registry.gitlab.com/hctrdev/fail2ban-prometheus-exporter:0.10.3` runs as uid 0. `group_add` does not drop that uid. The socket is the fail2ban control API. Leave the socket mode owner-only, and mount the directory `/var/run/fail2ban` read-only only after the socket file exists.
