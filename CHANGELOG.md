@@ -23,6 +23,11 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - The systemd unit no longer uses `/host/proc`. The Docker install on extra hosts passes `--path.rootfs=/rootfs`.
 - The first Ansible run fills an empty `GRAFANA_PASSWORD` and reloads Prometheus. It does not recreate the whole stack on every run.
 - Node Exporter on extra hosts accepts TCP 9100 only from the monitoring server. The container drops all capabilities. Alertmanager config is checked with `amtool`, and a Telegram token is not printed in the play recap.
+- Prometheus config rendered invalid YAML when `monitored_nodes` was not empty. Targets now use `node_exporter_bind_ip` (default `ansible_host`).
+- `node_exporter_install_method` set in the inventory now takes effect. A play variable used to override it.
+- Prometheus, Alertmanager and Blackbox restart when their config files change. The files are single-file bind mounts, and a replaced file stayed invisible to the container after a reload. The playbook then waits for `/-/ready`.
+- systemd install of Node Exporter: sha256 is pinned for x86_64 and aarch64, the archive is unpacked into a root-owned directory under the install dir instead of `/tmp`, and the service restarts when the binary changes.
+- The Node Exporter firewall allows requests from the host itself. The controller-side dashboard check no longer needs `sudo`.
 
 ### Removed
 - `docs/PRODUCTION_CHECKLIST.md` — content merged into SECURITY.md and OPERATIONS.md.
