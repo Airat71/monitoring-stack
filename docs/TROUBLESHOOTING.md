@@ -21,7 +21,7 @@
 ## High memory/CPU on monitoring server
 
 - **Cause:** Long retention, too many targets, or heavy queries.
-- **Fix:** Reduce `prometheus_retention` (e.g. 15d); limit dashboard refresh; add more resources to the monitoring host.
+- **Fix:** Reduce retention; limit dashboard refresh; add more resources to the monitoring host. With Ansible, set `prometheus_retention` (e.g. `15d`). With plain Docker Compose, change `--storage.tsdb.retention.time=30d` in `prometheus-grafana/docker-compose.yml` and run `docker compose up -d prometheus`.
 
 ## Fail2banSocketDown or an empty Fail2ban dashboard
 
