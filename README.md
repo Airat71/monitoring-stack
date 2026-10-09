@@ -149,9 +149,11 @@ Full index: [docs/INDEX.md](docs/INDEX.md)
 
 | Target | What you need |
 |--------|---------------|
-| Monitoring server | Docker · Docker Compose · SSH access |
-| Monitored hosts | Docker (containerized Node Exporter) or systemd (binary) |
-| Ansible control node | Ansible 2.9+ · Python 3 · SSH key access to all hosts |
+| Monitoring server | Docker Engine with the Compose plugin (`docker compose`) · SSH access |
+| Monitored hosts | `iptables` (port 9100 is opened only to the monitoring server) · Docker at `/usr/bin/docker` (default method) or systemd (binary) |
+| Ansible control node | ansible-core 2.12 or newer · Python 3 · SSH key access to all hosts |
+
+Tested on Ubuntu 22.04, 24.04 and 26.04 with Docker Engine 29.9, Compose 5.6 and ansible-core 2.12, 2.14, 2.16, 2.18, 2.19 and 2.20. Ansible 2.9 fails on Ubuntu 24.04 targets, so it is not supported. To install Docker, follow the [Docker Engine install guide](https://docs.docker.com/engine/install/).
 
 ---
 

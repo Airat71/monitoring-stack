@@ -2,9 +2,10 @@
 
 ## Prerequisites
 
-- **Monitoring server:** Docker · Docker Compose · SSH access
-- **Ansible control node:** Ansible 2.9+ · Python 3 · SSH key access to all hosts
-- **Monitored hosts:** Docker or systemd (for Node Exporter)
+- **Monitoring server:** Docker Engine with the Compose plugin (`docker compose`) · SSH access. Install Docker first: <https://docs.docker.com/engine/install/>
+- **Ansible control node:** ansible-core 2.12 or newer · Python 3 · SSH key access to all hosts
+- **Monitored hosts:** `iptables`, plus either Docker at `/usr/bin/docker` (default method) or systemd (binary method)
+- **Tested on:** Ubuntu 22.04, 24.04 and 26.04
 
 ---
 
