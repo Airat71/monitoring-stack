@@ -30,6 +30,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - Prometheus, Alertmanager and Blackbox restart when their config files change. The files are single-file bind mounts, and a replaced file stayed invisible to the container after a reload. The playbook then waits for `/-/ready`.
 - systemd install of Node Exporter: sha256 is pinned for x86_64 and aarch64, the archive is unpacked into a root-owned directory under the install dir instead of `/tmp`, and the service restarts when the binary changes.
 - The Node Exporter firewall allows requests from the host itself. The controller-side dashboard check no longer needs `sudo`.
+- `scripts/backup-monitoring.sh` runs with `umask 077`, so archives and the config copy are owner-only. It now also copies `blackbox.yml` and `.env`, and no longer hides `cp` errors.
 
 ### Removed
 - `docs/PRODUCTION_CHECKLIST.md` — content merged into SECURITY.md and OPERATIONS.md.

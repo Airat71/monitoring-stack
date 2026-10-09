@@ -4,7 +4,7 @@
 
 - **Prometheus data:** `prometheus-data` volume (TSDB). Large; consider retention vs backup size.
 - **Grafana:** `grafana-data` volume (dashboards, users). Smaller than Prometheus data in a long-running install, but the archive includes the `plugins` directory (about 150 MB on a fresh install).
-- **Configs:** the script copies `prometheus.yml`, `alerts.yml`, `docker-compose.yml` and, when it exists, `alertmanager.yml`. It does not copy `blackbox.yml` or `.env` (it holds the Grafana password): copy those yourself. `alertmanager.yml` can hold the Telegram token and the copy keeps the source file mode, so restrict access to `BACKUP_DIR`.
+- **Configs:** the script copies `prometheus.yml`, `alerts.yml`, `alertmanager.yml`, `blackbox.yml`, `docker-compose.yml` and `.env` (which holds the Grafana password). Missing files are skipped. The script runs with `umask 077`, so the archives and the `config-<ts>/` directory are readable by the owner only.
 
 ## Script and Ansible
 
@@ -23,6 +23,8 @@ Then run the playbook. The script is copied to `{{ monitoring_base_dir }}/script
 ```bash
 MONITORING_DIR=/opt/monitoring BACKUP_DIR=/backup/monitoring RETENTION_DAYS=7 /opt/monitoring/scripts/backup-monitoring.sh
 ```
+
+**A backup on the same server is not a backup.** If the disk or the server is lost, the backups go with it. Copy `BACKUP_DIR` to another machine or to object storage (for example with `rsync` or `rclone` from cron) and test a restore from that copy.
 
 ## Restore
 
