@@ -21,7 +21,7 @@ Grafana → http://localhost:3001 (admin / your password)
 Prometheus → http://localhost:9090
 Alertmanager → http://localhost:9093
 
-Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-grafana/alertmanager.yml`, set `bot_token` and a numeric `chat_id`, then `docker compose up -d alertmanager`.
+Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-grafana/alertmanager.yml`, set `bot_token` and a numeric `chat_id`, then run `docker compose restart alertmanager`. `docker compose up -d` does not apply the new file: the container is not recreated when only a bind-mounted file changes.
 
 ---
 
