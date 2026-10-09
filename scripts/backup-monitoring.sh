@@ -4,6 +4,8 @@
 # Configure: BACKUP_DIR, RETENTION_DAYS; MONITORING_DIR = path where docker-compose.yml lives.
 
 set -e
+# Archives and configs can hold the Grafana password and the Telegram token.
+umask 077
 MONITORING_DIR="${MONITORING_DIR:-/opt/monitoring}"
 BACKUP_DIR="${BACKUP_DIR:-/backup/monitoring}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
@@ -21,8 +23,9 @@ docker compose exec -T grafana tar czf - -C /var/lib grafana > "$BACKUP_DIR/graf
 # Configs (small, useful for restore)
 CONFIG_DIR="$BACKUP_DIR/config-$TS"
 mkdir -p "$CONFIG_DIR"
-cp -a prometheus.yml alerts.yml docker-compose.yml "$CONFIG_DIR/" 2>/dev/null || true
-[ -f alertmanager.yml ] && cp -a alertmanager.yml "$CONFIG_DIR/"
+for f in prometheus.yml alerts.yml alertmanager.yml blackbox.yml docker-compose.yml .env; do
+  if [ -f "$f" ]; then cp "$f" "$CONFIG_DIR/"; fi
+done
 
 # Rotate archives and old config dirs
 find "$BACKUP_DIR" -maxdepth 1 -name 'prometheus-*.tar.gz' -mtime +"$RETENTION_DAYS" -delete
