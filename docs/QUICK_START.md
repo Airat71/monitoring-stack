@@ -80,7 +80,7 @@ cd ansible && ansible-playbook -i inventory.yml playbook.yml
 ```bash
 # Edit alerts/alertmanager.example.yml — set bot_token and a numeric chat_id
 # Copy it over prometheus-grafana/alertmanager.yml, then:
-# docker compose up -d alertmanager
+docker compose restart alertmanager   # `up -d` would not pick up the changed file
 ```
 
 ---
@@ -98,7 +98,7 @@ curl http://localhost:9090/-/healthy   # check Prometheus
 **Alerts not firing:**
 ```bash
 curl http://localhost:9090/api/v1/rules    # check rules loaded
-curl http://localhost:9093/api/v1/alerts  # check Alertmanager
+curl http://localhost:9093/api/v2/alerts  # check Alertmanager (API v1 was removed)
 ```
 
 **SSH tunnel drops:** restart with the same `-L` flags or use autossh for persistence.

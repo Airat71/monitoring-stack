@@ -21,7 +21,7 @@ Grafana → http://localhost:3001 (admin / your password)
 Prometheus → http://localhost:9090
 Alertmanager → http://localhost:9093
 
-Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-grafana/alertmanager.yml`, set `bot_token` and a numeric `chat_id`, then `docker compose up -d alertmanager`.
+Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-grafana/alertmanager.yml`, set `bot_token` and a numeric `chat_id`, then run `docker compose restart alertmanager`. `docker compose up -d` does not apply the new file: the container is not recreated when only a bind-mounted file changes.
 
 ---
 
@@ -47,7 +47,7 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
    For automated backups set `deploy_backup_script: true`.
    Nginx, PostgreSQL, Redis, and RabbitMQ flags do not install exporters.
    Telegram is optional. Set `telegram_bot_token` and numeric `telegram_chat_id` in Ansible Vault. Leave them unset to start Alertmanager without Telegram. Never commit `all.yml`.
-   If `GRAFANA_PASSWORD` in `.env` is empty, the first playbook run generates one and prints it. Later runs keep the value already in `.env`.
+   If `GRAFANA_PASSWORD` in `.env` is empty, the first playbook run generates one and prints it in plain text in the play output. It is also stored in `.env` (mode `0600`). Treat saved output of that run, such as a CI log, as a secret. Later runs keep the value already in `.env`.
 
 4. **Dashboards**
    The nine dashboards in `grafana-dashboards/json/` are already in the repository. The playbook copies them. Run `./scripts/fetch-dashboards.sh` only after editing `scripts/build-dashboards.py`.

@@ -24,7 +24,7 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 | **Alerts** | 17 alert rules (see docs/MONITORING.md) |
 | **Multi-server** | Monitor N servers from one Grafana instance |
 | **Backups** | Automated backup script with optional cron |
-| **Documentation** | 20 guides: deployment, security, operations, runbook, troubleshooting |
+| **Documentation** | 21 guides: deployment, security, operations, runbook, troubleshooting |
 
 ---
 
@@ -73,6 +73,9 @@ docker compose up -d
 # Alertmanager → http://localhost:9093
 ```
 
+- All ports are published on `127.0.0.1` only. On a remote server, open an SSH tunnel first: `ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@<server>`.
+- The default `prometheus.yml` probes `https://example.com` with Blackbox. Replace that target with your own URL ([docs/BLACKBOX.md](docs/BLACKBOX.md)). Until you do, the Blackbox dashboard and the `BlackboxProbeFailed` alert follow `example.com`, and the alert fires when that site is unreachable from your server.
+
 ---
 
 ## Full Deploy with Ansible (single command)
@@ -99,7 +102,7 @@ Step-by-step: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
     Node Exporter  ──┐
     fail2ban        ──┤
                      │
-              [Prometheus] ──→ [Alertmanager] ──→ Telegram / Email
+              [Prometheus] ──→ [Alertmanager] ──→ Telegram (email: manual config)
                      │
               [Blackbox]   (HTTP/TCP probes)
                      │
@@ -132,7 +135,7 @@ See [`alerts/alertmanager.example.yml`](alerts/alertmanager.example.yml) for rou
 | [docs/ALERTMANAGER.md](docs/ALERTMANAGER.md) | Alert routing and receivers |
 | [docs/GRAFANA_DASHBOARDS.md](docs/GRAFANA_DASHBOARDS.md) | Dashboard import and usage |
 | [docs/SECURITY.md](docs/SECURITY.md) | Security hardening |
-| [docs/PRODUCTION_CHECKLIST.md](docs/PRODUCTION_CHECKLIST.md) | Pre-production checklist |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Daily checks and common tasks |
 | [docs/BACKUP.md](docs/BACKUP.md) | Backup and restore |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common issues and fixes |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Operations runbook |
@@ -162,7 +165,7 @@ monitoring-stack/
 ├── alerts/                 # Alertmanager routing config example
 ├── scripts/                # Backup and dashboard builder
 ├── fail2ban/               # fail2ban integration guide
-├── docs/                   # 20 guides
+├── docs/                   # 21 guides
 └── INSTALLATION_GUIDE.md   # Getting started
 ```
 
