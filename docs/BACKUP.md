@@ -3,8 +3,8 @@
 ## What to back up
 
 - **Prometheus data:** `prometheus-data` volume (TSDB). Large; consider retention vs backup size.
-- **Grafana:** `grafana-data` volume (dashboards, users). Smaller.
-- **Configs:** `prometheus.yml`, `alerts.yml`, `alertmanager.yml`, `docker-compose.yml` — keep in git or copy to a safe path.
+- **Grafana:** `grafana-data` volume (dashboards, users). Smaller than Prometheus data in a long-running install, but the archive includes the `plugins` directory (about 150 MB on a fresh install).
+- **Configs:** the script copies `prometheus.yml`, `alerts.yml` and `docker-compose.yml`. It does not copy `alertmanager.yml` (it can hold the Telegram token), `blackbox.yml` or `.env` (it holds the Grafana password). Copy those yourself to a safe path.
 
 ## Script and Ansible
 
@@ -26,4 +26,24 @@ MONITORING_DIR=/opt/monitoring BACKUP_DIR=/backup/monitoring RETENTION_DAYS=7 /o
 
 ## Restore
 
-Stop stack, restore Prometheus/Grafana volumes from the `.tar.gz` archives, copy configs from `config-<ts>/` if needed, then `docker compose up -d`.
+The script writes `prometheus-<ts>.tar.gz`, `grafana-<ts>.tar.gz` and `config-<ts>/` into `BACKUP_DIR`. The Grafana archive has a top-level `grafana/` directory and the Prometheus archive does not, so they are unpacked differently. Extracting the Grafana archive into the wrong path leaves the old data in place without an error.
+
+Volume names are `<project>_grafana-data` and `<project>_prometheus-data`, where the project is the name of the directory that holds `docker-compose.yml` (`monitoring` for `/opt/monitoring`). Check with `docker volume ls`.
+
+```bash
+cd /opt/monitoring
+TS=20261009-130129                 # timestamp of the archives to restore
+docker compose down
+
+# Grafana: clear the volume, unpack without the top-level grafana/ directory
+docker run --rm -v monitoring_grafana-data:/data -v /backup/monitoring:/backup:ro alpine \
+  sh -c "rm -rf /data/* /data/.[!.]*; tar xzf /backup/grafana-$TS.tar.gz -C /data --strip-components=1"
+
+# Prometheus: clear the volume, unpack as is
+docker run --rm -v monitoring_prometheus-data:/data -v /backup/monitoring:/backup:ro alpine \
+  sh -c "rm -rf /data/* /data/.[!.]*; tar xzf /backup/prometheus-$TS.tar.gz -C /data"
+
+docker compose up -d
+```
+
+Copy configs from `config-<ts>/` if you need them. Afterwards open Grafana and check that your dashboards and folders are back, and that all Prometheus targets are up.
