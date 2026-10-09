@@ -14,9 +14,9 @@
 
 ## Alertmanager not receiving
 
-- **Cause:** Wrong Telegram token/chat_id or SMTP config; or Prometheus not pointing to Alertmanager.
+- **Cause:** Wrong Telegram token or `chat_id`, an invalid `email_configs` block, or Prometheus not pointing to Alertmanager.
 - **Check:** `prometheus.yml` has `alerting.alertmanagers` with correct target. Alertmanager logs: `docker compose logs alertmanager`.
-- **Fix:** Set Telegram/SMTP in vault or .env; reload Prometheus and Alertmanager.
+- **Fix:** Set `telegram_bot_token` and `telegram_chat_id` in Ansible vault, or edit `alertmanager.yml` for Telegram or email. `.env` holds only `GRAFANA_PASSWORD`. Then run `docker compose restart alertmanager` and reload Prometheus.
 
 ## High memory/CPU on monitoring server
 
