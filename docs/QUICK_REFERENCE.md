@@ -35,7 +35,6 @@ ssh -L 3001:127.0.0.1:3001 user@monitoring-server
 
 ## Variables (group_vars)
 
-- `include_nginx`, `include_postgresql`, `include_redis`, `include_rabbitmq` — optional services
 - `monitoring_install_dir` — path on server (default `/opt/monitoring`)
 - `deploy_alertmanager`, `deploy_blackbox` — enable/disable components
 - `prometheus_image`, `grafana_image`, etc. — pinned image tags (production)

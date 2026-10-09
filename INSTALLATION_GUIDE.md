@@ -45,7 +45,7 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
    cp ansible/group_vars/all.yml.example ansible/group_vars/all.yml
    ```
    For automated backups set `deploy_backup_script: true`.
-   Nginx, PostgreSQL, Redis, and RabbitMQ flags do not install exporters.
+   The playbook does not install Nginx, PostgreSQL, Redis, or RabbitMQ exporters. See the matching guide in `docs/`.
    Telegram is optional. Set `telegram_bot_token` and numeric `telegram_chat_id` in Ansible Vault. Leave them unset to start Alertmanager without Telegram. Never commit `all.yml`.
    If `GRAFANA_PASSWORD` in `.env` is empty, the first playbook run generates one and prints it. Later runs keep the value already in `.env`.
 
