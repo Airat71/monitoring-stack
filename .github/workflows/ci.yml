@@ -16,9 +16,9 @@ permissions:
 jobs:
   validate-stack:
     name: Validate (Docker Compose)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate Docker Compose config
         run: docker compose config --quiet
@@ -42,9 +42,9 @@ jobs:
 
   validate-yaml:
     name: YAML lint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Parse YAML files
         run: |
@@ -78,17 +78,17 @@ jobs:
 
   shellcheck:
     name: ShellCheck
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v7
-      - uses: ludeeus/action-shellcheck@2.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
         with:
           scandir: ./scripts
           severity: warning
 
   ci-pass:
     name: CI passed
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: [validate-stack, validate-yaml, shellcheck]
     if: always()
     steps:
