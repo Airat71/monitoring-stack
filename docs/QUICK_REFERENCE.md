@@ -41,4 +41,4 @@ ssh -L 3001:127.0.0.1:3001 user@monitoring-server
 - `prometheus_memory_limit`, `grafana_memory_limit` — resource limits
 - `telegram_bot_token`, `telegram_chat_id` — for Alertmanager (use vault)
 
-See **PRODUCTION_CHECKLIST.md** for production readiness.
+See [SECURITY.md](SECURITY.md) and [OPERATIONS.md](OPERATIONS.md) for production readiness.

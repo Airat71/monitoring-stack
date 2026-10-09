@@ -14,14 +14,14 @@
 
 ## Alertmanager not receiving
 
-- **Cause:** Wrong Telegram token/chat_id or SMTP config; or Prometheus not pointing to Alertmanager.
+- **Cause:** Wrong Telegram token or `chat_id`, an invalid `email_configs` block, or Prometheus not pointing to Alertmanager.
 - **Check:** `prometheus.yml` has `alerting.alertmanagers` with correct target. Alertmanager logs: `docker compose logs alertmanager`.
-- **Fix:** Set Telegram/SMTP in vault or .env; reload Prometheus and Alertmanager.
+- **Fix:** Set `telegram_bot_token` and `telegram_chat_id` in Ansible vault, or edit `alertmanager.yml` for Telegram or email. `.env` holds only `GRAFANA_PASSWORD`. Then run `docker compose restart alertmanager` and reload Prometheus.
 
 ## High memory/CPU on monitoring server
 
 - **Cause:** Long retention, too many targets, or heavy queries.
-- **Fix:** Reduce `prometheus_retention` (e.g. 15d); limit dashboard refresh; add more resources to the monitoring host.
+- **Fix:** Reduce retention; limit dashboard refresh; add more resources to the monitoring host. With Ansible, set `prometheus_retention` (e.g. `15d`). With plain Docker Compose, change `--storage.tsdb.retention.time=30d` in `prometheus-grafana/docker-compose.yml` and run `docker compose up -d prometheus`.
 
 ## Fail2banSocketDown or an empty Fail2ban dashboard
 
