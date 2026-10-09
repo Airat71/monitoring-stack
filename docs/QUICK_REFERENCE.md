@@ -35,11 +35,10 @@ ssh -L 3001:127.0.0.1:3001 user@monitoring-server
 
 ## Variables (group_vars)
 
-- `include_nginx`, `include_postgresql`, `include_redis`, `include_rabbitmq` — optional services
 - `monitoring_install_dir` — path on server (default `/opt/monitoring`)
 - `deploy_alertmanager`, `deploy_blackbox` — enable/disable components
 - `prometheus_image`, `grafana_image`, etc. — pinned image tags (production)
 - `prometheus_memory_limit`, `grafana_memory_limit` — resource limits
 - `telegram_bot_token`, `telegram_chat_id` — for Alertmanager (use vault)
 
-See **PRODUCTION_CHECKLIST.md** for production readiness.
+See [SECURITY.md](SECURITY.md) and [OPERATIONS.md](OPERATIONS.md) for production readiness.
