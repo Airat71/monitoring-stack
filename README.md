@@ -58,6 +58,9 @@ docker compose up -d
 # Alertmanager → http://localhost:9093
 ```
 
+- All ports are published on `127.0.0.1` only. On a remote server, open an SSH tunnel first: `ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@<server>`.
+- The default `prometheus.yml` probes `https://example.com` with Blackbox. Replace that target with your own URL ([docs/BLACKBOX.md](docs/BLACKBOX.md)). Until you do, the Blackbox dashboard and the `BlackboxProbeFailed` alert follow `example.com`, and the alert fires when that site is unreachable from your server.
+
 ---
 
 ## Full Deploy with Ansible (single command)
