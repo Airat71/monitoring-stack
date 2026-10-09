@@ -46,6 +46,8 @@ Stop if that path is missing or is a directory. Install and start fail2ban first
 
 ### 2. Add the service
 
+Add the block to the `services:` section of `prometheus-grafana/docker-compose.yml` (`/opt/monitoring/docker-compose.yml` after an Ansible deploy). The file also has a top-level `volumes:` section: a service placed there makes `docker compose` fail with `additional properties ... not allowed`.
+
 `read_only`, `no-new-privileges`, the localhost port, and the memory limit are the controls this image actually honors. They do not drop uid 0.
 
 ```yaml

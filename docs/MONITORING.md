@@ -14,7 +14,7 @@ The stack ships these alert rules in `prometheus-grafana/alerts.yml`:
 ## Alertmanager
 
 - Config file: `alertmanager.yml` in the monitoring directory.
-- **Receivers:** Telegram and/or Email. Set `telegram_bot_token`, `telegram_chat_id` (and SMTP vars if using email) in group_vars or vault.
+- **Receivers:** Telegram is built into the Ansible template: set `telegram_bot_token` and `telegram_chat_id` in group_vars or vault. Email is configured by hand with `email_configs` ([ALERTMANAGER.md](ALERTMANAGER.md)); the template has no SMTP variables.
 - **Routing:** Critical alerts can go to a separate receiver; repeat_interval and group_interval are set in the template.
 
 ## Adding a custom alert
