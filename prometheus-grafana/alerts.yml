@@ -79,7 +79,7 @@ groups:
           description: "1-minute load average per CPU is above 1.5 on {{ $labels.instance }}."
 
       - alert: FilesystemReadonly
-        expr: node_filesystem_readonly{fstype!~"tmpfs|devtmpfs|overlay|squashfs"} == 1
+        expr: node_filesystem_readonly{fstype!~"tmpfs|devtmpfs|overlay|squashfs|ramfs"} == 1
         for: 5m
         labels:
           severity: critical
