@@ -84,7 +84,7 @@ Step-by-step: [INSTALLATION_GUIDE.md](INSTALLATION_GUIDE.md)
     Node Exporter  ──┐
     fail2ban        ──┤
                      │
-              [Prometheus] ──→ [Alertmanager] ──→ Telegram / Email
+              [Prometheus] ──→ [Alertmanager] ──→ Telegram (email: manual config)
                      │
               [Blackbox]   (HTTP/TCP probes)
                      │

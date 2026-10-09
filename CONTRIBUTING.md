@@ -49,11 +49,19 @@ docker run --rm --entrypoint promtool \
   prom/prometheus:v3.14.0 \
   check config /etc/prometheus/prometheus.yml
 
-# YAML lint (Ansible)
-cd ansible && yamllint .
+# YAML syntax, same check as CI (needs PyYAML: python3 -m pip install pyyaml)
+python3 - <<'PY'
+import yaml
+from pathlib import Path
+skip = {".git", ".github", "grafana-dashboards"}
+for p in [*Path(".").rglob("*.yml"), *Path(".").rglob("*.yaml")]:
+    if not skip & set(p.parts):
+        yaml.safe_load(p.read_text())
+print("YAML OK")
+PY
 
-# ShellCheck
-shellcheck scripts/*.sh
+# ShellCheck (brew install shellcheck, or apt install shellcheck)
+shellcheck --severity=warning scripts/*.sh
 ```
 
 All contributions are licensed under [MIT](LICENSE.md).
