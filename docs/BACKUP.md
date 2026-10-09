@@ -4,7 +4,7 @@
 
 - **Prometheus data:** `prometheus-data` volume (TSDB). Large; consider retention vs backup size.
 - **Grafana:** `grafana-data` volume (dashboards, users). Smaller than Prometheus data in a long-running install, but the archive includes the `plugins` directory (about 150 MB on a fresh install).
-- **Configs:** the script copies `prometheus.yml`, `alerts.yml` and `docker-compose.yml`. It does not copy `alertmanager.yml` (it can hold the Telegram token), `blackbox.yml` or `.env` (it holds the Grafana password). Copy those yourself to a safe path.
+- **Configs:** the script copies `prometheus.yml`, `alerts.yml`, `docker-compose.yml` and, when it exists, `alertmanager.yml`. It does not copy `blackbox.yml` or `.env` (it holds the Grafana password): copy those yourself. `alertmanager.yml` can hold the Telegram token and the copy keeps the source file mode, so restrict access to `BACKUP_DIR`.
 
 ## Script and Ansible
 
