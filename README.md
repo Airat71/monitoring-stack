@@ -44,6 +44,21 @@ If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack
 | RabbitMQ | Connections and queue depth | Empty until an exporter exposes `rabbitmq_up` |
 | Fail2ban | Current bans, failed attempts, ban rate | Empty until an exporter exposes `f2b_up` |
 
+### Screenshots
+
+Taken on a fresh two-host deployment (Ubuntu 22.04, `ansible-playbook` run twice, fail2ban exporter from `docs/FAIL2BAN_ENHANCED.md`).
+
+<p>
+  <img src="screenshots/04-system-metrics.png" alt="Host dashboard with two hosts" width="49%">
+  <img src="screenshots/05-fail2ban-monitoring.png" alt="Fail2ban dashboard" width="49%">
+</p>
+<p>
+  <img src="screenshots/01-prometheus-targets.png" alt="Prometheus targets, all up" width="49%">
+  <img src="screenshots/07-ansible-deploy.png" alt="Ansible run: first run changes, second run changes nothing" width="49%">
+</p>
+
+More captures are in [`screenshots/`](screenshots/).
+
 ---
 
 ## Quick Start (Docker Compose — 5 minutes)
