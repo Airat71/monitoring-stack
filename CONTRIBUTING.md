@@ -27,14 +27,17 @@ Open a [GitHub Issue](https://github.com/Airat71/monitoring-stack/issues).
 
 ## CI pipeline
 
-Every pull request runs two independent workflows:
+Every pull request runs independent workflows:
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
 | **Security** | `security.yml` | all pushes + PRs | TruffleHog full-history secrets scan |
 | **CI** | `ci.yml` | pushes/PRs (skips docs-only) | Docker Compose validation, Prometheus config, YAML lint, ShellCheck |
+| **Smoke test** | `smoke-test.yml` | PRs/pushes that touch the stack, Ansible, dashboards or the check script; weekly; manual | Starts the stack with Docker Compose and with the Ansible playbook, checks that Prometheus, Alertmanager and Grafana answer and every scrape target is up, and that a second playbook run changes nothing |
 
 The security scan has no `paths-ignore` — it runs on every change without exception.
+
+The smoke test runs on `ubuntu-24.04` only. It does not replace the manual check on other Ubuntu versions and ansible-core releases listed in the README.
 
 **To pass CI locally before pushing:**
 

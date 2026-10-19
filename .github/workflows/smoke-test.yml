@@ -1,0 +1,100 @@
+name: Smoke test
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "prometheus-grafana/**"
+      - "ansible/**"
+      - "grafana-dashboards/**"
+      - "scripts/smoke-check.sh"
+      - ".github/workflows/smoke-test.yml"
+  push:
+    branches: [main]
+    paths:
+      - "prometheus-grafana/**"
+      - "ansible/**"
+      - "grafana-dashboards/**"
+      - "scripts/smoke-check.sh"
+      - ".github/workflows/smoke-test.yml"
+  schedule:
+    # Weekly: catches drift in upstream images and the runner.
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  compose:
+    name: Stack starts (docker compose)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Start the stack
+        working-directory: prometheus-grafana
+        run: |
+          cp .env.example .env
+          echo "GRAFANA_PASSWORD=ci-smoke-$(openssl rand -hex 12)" >> .env
+          docker compose up -d
+
+      - name: Smoke check
+        run: bash scripts/smoke-check.sh
+
+      - name: Container state and logs on failure
+        if: failure()
+        working-directory: prometheus-grafana
+        run: |
+          docker compose ps -a
+          docker compose logs --no-color --tail=100
+
+  ansible:
+    name: Playbook deploys and is idempotent
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Ansible
+        run: pipx install ansible-core
+
+      - name: Write a local inventory
+        run: |
+          cat > "$RUNNER_TEMP/inventory.yml" <<'YAML'
+          all:
+            children:
+              monitoring_server:
+                hosts:
+                  monitor:
+                    ansible_host: 127.0.0.1
+                    ansible_connection: local
+                vars:
+                  monitoring_install_dir: /opt/monitoring
+              monitored_nodes:
+                hosts: {}
+          YAML
+
+      - name: First run
+        working-directory: ansible
+        run: ansible-playbook -i "$RUNNER_TEMP/inventory.yml" playbook.yml
+
+      - name: Smoke check
+        run: bash scripts/smoke-check.sh
+
+      - name: Second run changes nothing
+        working-directory: ansible
+        run: |
+          ansible-playbook -i "$RUNNER_TEMP/inventory.yml" playbook.yml | tee "$RUNNER_TEMP/second-run.log"
+          grep -E '^monitor +: ok=[0-9]+ +changed=0 +unreachable=0 +failed=0' "$RUNNER_TEMP/second-run.log"
+
+      - name: Container state and logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          cd /opt/monitoring 2>/dev/null && sudo docker compose logs --no-color --tail=100 || true
