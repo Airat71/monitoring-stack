@@ -9,6 +9,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Pull request template and issue templates (bug report, feature request) in `.github/`.
 - Smoke test workflow (`smoke-test.yml`): starts the stack with Docker Compose and with the Ansible playbook on `ubuntu-24.04`, checks readiness, loaded alert rules and that all scrape targets are up, and runs the playbook a second time expecting `changed=0`. Runs on relevant PRs and pushes, weekly, and on demand. `scripts/smoke-check.sh` does the checks and can be run against any stack on loopback ports.
 - Fail2ban dashboard expanded to 7 panels: sparklines on current bans and failed attempts, new "Attacks last 24 h" and "Total attacks blocked" panels.
 - Alert `Fail2banSocketDown` when `f2b_up == 0`. The exporter process can stay up while the socket is unreachable, so a Prometheus `up` check does not cover this.
