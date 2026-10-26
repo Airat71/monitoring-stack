@@ -8,6 +8,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-10-26
+
 ### Added
 - Pull request template and issue templates (bug report, feature request) in `.github/`.
 - Smoke test workflow (`smoke-test.yml`): starts the stack with Docker Compose and with the Ansible playbook on `ubuntu-24.04`, checks readiness, loaded alert rules and that all scrape targets are up, and runs the playbook a second time expecting `changed=0`. Runs on relevant PRs and pushes, weekly, and on demand. `scripts/smoke-check.sh` does the checks and can be run against any stack on loopback ports.
