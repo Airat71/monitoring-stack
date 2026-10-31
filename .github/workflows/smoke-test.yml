@@ -8,6 +8,7 @@ on:
       - "ansible/**"
       - "grafana-dashboards/**"
       - "scripts/smoke-check.sh"
+      - "scripts/upgrade-check.sh"
       - ".github/workflows/smoke-test.yml"
   push:
     branches: [main]
@@ -16,6 +17,7 @@ on:
       - "ansible/**"
       - "grafana-dashboards/**"
       - "scripts/smoke-check.sh"
+      - "scripts/upgrade-check.sh"
       - ".github/workflows/smoke-test.yml"
   schedule:
     # Weekly: catches drift in upstream images and the runner.
@@ -98,3 +100,39 @@ jobs:
         run: |
           docker ps -a
           cd /opt/monitoring 2>/dev/null && sudo docker compose logs --no-color --tail=100 || true
+
+  upgrade:
+    name: Upgrade from the latest release keeps data and dashboards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          path: new
+          persist-credentials: false
+
+      - name: Find the latest release
+        id: release
+        working-directory: new
+        run: |
+          tag="$(git describe --tags --abbrev=0 --match 'v*' HEAD || true)"
+          if [[ -z "$tag" ]]; then
+            echo "::warning::No v* tag found: the upgrade check did not run"
+          elif [[ "$(git rev-parse "$tag^{commit}")" == "$(git rev-parse HEAD)" ]]; then
+            echo "::warning::HEAD is the release $tag: the upgrade check did not run"
+            tag=""
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Upgrading from: ${tag:-nothing}"
+
+      - name: Check out the release
+        if: steps.release.outputs.tag != ''
+        working-directory: new
+        env:
+          TAG: ${{ steps.release.outputs.tag }}
+        run: git worktree add --detach ../old "$TAG"
+
+      - name: Upgrade check
+        if: steps.release.outputs.tag != ''
+        run: bash new/scripts/upgrade-check.sh old new
