@@ -66,13 +66,14 @@ More captures are in [`screenshots/`](screenshots/).
 ```bash
 git clone https://github.com/Airat71/monitoring-stack.git
 cd monitoring-stack/prometheus-grafana
-cp .env.example .env          # set GRAFANA_PASSWORD (required)
+cp .env.example .env && chmod 600 .env   # set GRAFANA_PASSWORD (required)
 docker compose up -d
 # Grafana → http://localhost:3001  (admin / your password)
 # Prometheus → http://localhost:9090
 # Alertmanager → http://localhost:9093
 ```
 
+- Ports 9090, 3001, 9093, 9100 and 9115 on `127.0.0.1` must be free before `up -d`. Afterwards run `bash ../scripts/smoke-check.sh` (needs `curl` and `jq`): `docker compose ps` alone can show a started container that is not reachable ([details](docs/TROUBLESHOOTING.md)).
 - All ports are published on `127.0.0.1` only. On a remote server, open an SSH tunnel first: `ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@<server>`.
 - The default `prometheus.yml` probes `https://example.com` with Blackbox. Replace that target with your own URL ([docs/BLACKBOX.md](docs/BLACKBOX.md)). Until you do, the Blackbox dashboard and the `BlackboxProbeFailed` alert follow `example.com`, and the alert fires when that site is unreachable from your server.
 

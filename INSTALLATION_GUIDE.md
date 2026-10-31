@@ -13,10 +13,13 @@
 
 ```bash
 cd prometheus-grafana
-cp .env.example .env
+cp .env.example .env && chmod 600 .env
 # set GRAFANA_PASSWORD — compose will not start while it is empty
 docker compose up -d
+bash ../scripts/smoke-check.sh   # needs curl and jq
 ```
+
+Ports 9090, 3001, 9093, 9100 and 9115 on `127.0.0.1` must be free. Use either Option A or Option B on a host, not both: they create containers with the same names. If the smoke check fails, see [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
 Grafana → http://localhost:3001 (admin / your password)
 Prometheus → http://localhost:9090
@@ -56,6 +59,10 @@ Telegram is optional. Copy `alerts/alertmanager.example.yml` over `prometheus-gr
 5. **Run the playbook**
    ```bash
    cd ansible && ansible-playbook -i inventory.yml playbook.yml
+   ```
+   A zero exit code does not prove every target is up. On the monitoring server this prints `true` when there are targets and all of them are up; no output, an error or `false` means they are not:
+   ```bash
+   curl -fsS http://127.0.0.1:9090/api/v1/targets | jq -e '(.data.activeTargets | length > 0) and all(.data.activeTargets[]; .health == "up")'
    ```
 
 6. **Access**
