@@ -33,7 +33,7 @@ Every pull request runs independent workflows:
 |----------|------|----------|---------|
 | **Security** | `security.yml` | all pushes + PRs | TruffleHog full-history secrets scan |
 | **CI** | `ci.yml` | pushes/PRs (skips docs-only) | Docker Compose validation, Prometheus config, YAML lint, ShellCheck |
-| **Smoke test** | `smoke-test.yml` | PRs/pushes that touch the stack, Ansible, dashboards or the check script; weekly; manual | Starts the stack with Docker Compose and with the Ansible playbook, checks that Prometheus, Alertmanager and Grafana answer and every scrape target is up, and that a second playbook run changes nothing |
+| **Smoke test** | `smoke-test.yml` | PRs/pushes that touch the stack, Ansible, dashboards or the check scripts; weekly; manual | Starts the stack with Docker Compose and with the Ansible playbook, checks that Prometheus, Alertmanager and Grafana answer and every scrape target is up, and that a second playbook run changes nothing. A separate job starts the latest release with data, upgrades to the commit under test on the same volumes and checks that the smoke check passes and that the Grafana folder, Prometheus data and all dashboards survive (`scripts/upgrade-check.sh`) |
 
 The security scan has no `paths-ignore` — it runs on every change without exception.
 

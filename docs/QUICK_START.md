@@ -9,15 +9,20 @@ Get your monitoring stack running in **5 minutes**.
 ### Prerequisites
 - Docker and Docker Compose
 - 2GB+ RAM, 10GB disk
+- Free ports on 127.0.0.1: 9090, 3001, 9093, 9100, 9115. `ss -ltn | grep -E ':(9090|3001|9093|9100|9115)\b'` prints nothing when they are free.
 
 ```bash
 git clone https://github.com/Airat71/monitoring-stack.git
 cd monitoring-stack/prometheus-grafana
-cp .env.example .env
+cp .env.example .env && chmod 600 .env
 # Edit .env — set GRAFANA_PASSWORD. Compose will not start while it is empty.
 docker compose up -d
-docker compose ps   # verify all containers are healthy
+bash ../scripts/smoke-check.sh   # needs curl and jq; waits until every service answers and every target is up
 ```
+
+Run the smoke check instead of trusting `docker compose ps`. After a port conflict some containers stay in `Created` (plain `ps` hides them), and on Docker 29.1 and 29.9 a second `up -d` can show a container as `Up (healthy)` that has no network. The smoke check fails in both cases; see [TROUBLESHOOTING](TROUBLESHOOTING.md).
+
+`GRAFANA_PASSWORD` is read only when Grafana creates its data volume. Changing `.env` later does not change the login ([how to reset it](TROUBLESHOOTING.md)).
 
 **Access** (bound to 127.0.0.1):
 - Grafana: http://localhost:3001 (admin / your password)
@@ -32,6 +37,8 @@ ssh -L 3001:127.0.0.1:3001 -L 9090:127.0.0.1:9090 -L 9093:127.0.0.1:9093 user@yo
 ---
 
 ## Option B — Same stack on a server, with Ansible
+
+Use either option on a host, not both: they create containers with the same names (`prometheus`, `grafana`, `alertmanager`, `node-exporter`, `blackbox-exporter`).
 
 Deploys this stack to your server. Additional hosts stay out of the example until you add them.
 

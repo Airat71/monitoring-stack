@@ -8,6 +8,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `scripts/upgrade-check.sh` and an `upgrade` job in the smoke test: starts the latest release with data, upgrades to the commit under test on the same volumes, and checks that the smoke check passes, the Grafana folder and Prometheus data survive and every dashboard file is provisioned without errors. Found by running the v2.2.0 to v2.3.0 upgrade, which leaves three new dashboards unapplied (see `docs/TROUBLESHOOTING.md`).
+
+### Changed
+- Quick Start, README and Installation Guide: verify with `scripts/smoke-check.sh` instead of `docker compose ps`, list the ports that must be free, use either Option A or Option B on a host.
+- `docs/UPGRADE.md`: upgrade steps for the Docker Compose path.
+- `docs/TROUBLESHOOTING.md`: port conflicts, the Grafana password after the first start, dashboards after the v2.2.0 to v2.3.0 upgrade, Ansible on a host that already runs a stack or a Node Exporter.
+
 ## [2.3.0] - 2026-10-26
 
 ### Added
