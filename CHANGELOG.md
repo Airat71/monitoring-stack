@@ -8,6 +8,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.1] - 2026-11-08
+
 ### Added
 - `scripts/upgrade-check.sh` and an `upgrade` job in the smoke test: starts the latest release with data, upgrades to the commit under test on the same volumes, and checks that the smoke check passes, the Grafana folder and Prometheus data survive and every dashboard file is provisioned without errors. Found by running the v2.2.0 to v2.3.0 upgrade, which leaves three new dashboards unapplied (see `docs/TROUBLESHOOTING.md`).
 
