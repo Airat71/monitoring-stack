@@ -2,7 +2,7 @@
 
 ## Getting started
 - [INSTALLATION_GUIDE.md](../INSTALLATION_GUIDE.md) — prerequisites, first deploy
-- [QUICK_START.md](QUICK_START.md) — Docker Compose in 5 minutes
+- [QUICK_START.md](QUICK_START.md) — Docker Compose quick start
 - [DEPLOYMENT.md](DEPLOYMENT.md) — deployment options
 - [QUICK_REFERENCE.md](QUICK_REFERENCE.md) — cheat sheet for daily operations
 

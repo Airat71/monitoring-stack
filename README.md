@@ -7,7 +7,7 @@
 
 Self-hosted monitoring for Linux servers — Prometheus · Grafana · Alertmanager · Ansible · fail2ban.
 
-One-command deploy, 9 original dashboards, optional Telegram alerts, multi-server support. Ready in 15 minutes.
+One-command deploy, 9 original dashboards, optional Telegram alerts, multi-server support.
 
 If this saved you time, a [⭐ star](https://github.com/Airat71/monitoring-stack) helps others find it.
 
@@ -61,7 +61,7 @@ More captures are in [`screenshots/`](screenshots/).
 
 ---
 
-## Quick Start (Docker Compose — 5 minutes)
+## Quick Start (Docker Compose)
 
 ```bash
 git clone https://github.com/Airat71/monitoring-stack.git
@@ -154,7 +154,7 @@ Full index: [docs/INDEX.md](docs/INDEX.md)
 | Monitored hosts | `iptables` (port 9100 is opened only to the monitoring server) · Docker at `/usr/bin/docker` (default method) or systemd (binary) |
 | Ansible control node | ansible-core 2.12 or newer · Python 3 · SSH key access to all hosts |
 
-Tested on Ubuntu 22.04, 24.04 and 26.04 with Docker Engine 29.9, Compose 5.6 and ansible-core 2.12, 2.14, 2.16, 2.18, 2.19 and 2.20. Ansible 2.9 fails on Ubuntu 24.04 targets, so it is not supported. To install Docker, follow the [Docker Engine install guide](https://docs.docker.com/engine/install/).
+Tested on Ubuntu 22.04, 24.04 and 26.04 with Docker Engine 29.9, Compose 5.6 and ansible-core 2.12, 2.14, 2.16, 2.18, 2.19, 2.20 and 2.21, by hand. CI runs Ubuntu 24.04 with the latest ansible-core. Ansible 2.9 fails on Ubuntu 24.04 targets, so it is not supported. To install Docker, follow the [Docker Engine install guide](https://docs.docker.com/engine/install/).
 
 ---
 
