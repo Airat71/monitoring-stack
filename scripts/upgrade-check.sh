@@ -2,9 +2,10 @@
 # Upgrade check for the Docker Compose stack: start an older checkout, put data in it,
 # switch to a newer checkout on the same volumes and verify nothing was lost or left unapplied.
 # Usage: upgrade-check.sh OLD_DIR NEW_DIR   (two checkouts of this repository)
-# Checks after the upgrade: smoke check passes, the Grafana folder created before the upgrade
-# is still there, every dashboard file of the new version is provisioned, Grafana logs no
-# provisioning errors, Prometheus kept the data that was written before the upgrade.
+# Checks after the upgrade: smoke check passes, the Grafana folder and the dashboard created in
+# the UI before the upgrade are still there, every dashboard file of the new version is
+# provisioned (and nothing else is left over), Grafana logs no provisioning errors, Prometheus
+# kept the data that was written before the upgrade.
 # The script uses its own Compose project ("upgrade-check") and a throw-away password kept in a
 # temporary env file, so it neither reads nor changes the .env of either checkout. It publishes
 # the usual ports on 127.0.0.1 (9090, 3001, 9093, 9100, 9115): run it where they are free.
@@ -25,6 +26,7 @@ ALERTMANAGER_URL="http://127.0.0.1:9093"
 GRAFANA_URL="http://127.0.0.1:3001"
 DASHBOARD_TIMEOUT="${DASHBOARD_TIMEOUT:-90}"
 MARKER="upgrade-check-marker"
+UI_DASHBOARD_UID="upgrade-check-ui"
 PASSWORD="upgrade-check-$(openssl rand -hex 8)"
 WORK="$(mktemp -d)"
 ENV_FILE="$WORK/env"
@@ -85,10 +87,15 @@ folder_exists() {
   grafana_api /api/folders | jq -e --arg title "$MARKER" 'any(.[]; .title == $title)'
 }
 
+ui_dashboard_exists() {
+  grafana_api "/api/dashboards/uid/${UI_DASHBOARD_UID}" | jq -e '.dashboard.uid'
+}
+
+# The dashboard made in the UI is not provisioned and must stay; everything else has to be a file of the new version.
 dashboards_match() {
   local expected
   expected="$(jq -r '.uid' "$NEW_DIR"/grafana-dashboards/json/*.json | sort)"
-  [[ "$(grafana_api '/api/search?type=dash-db' | jq -r '.[].uid' | sort)" == "$expected" ]]
+  [[ "$(grafana_api '/api/search?type=dash-db' | jq -r --arg ui "$UI_DASHBOARD_UID" '.[].uid | select(. != $ui)' | sort)" == "$expected" ]]
 }
 
 echo "Old: $(git -C "$OLD_DIR" describe --tags --always 2>/dev/null || echo "$OLD_DIR")"
@@ -111,6 +118,8 @@ compose "$OLD_DIR" up -d
 smoke
 
 grafana_api /api/folders -H "Content-Type: application/json" -d "{\"title\":\"${MARKER}\"}" >/dev/null
+grafana_api /api/dashboards/db -H "Content-Type: application/json" \
+  -d "{\"dashboard\":{\"uid\":\"${UI_DASHBOARD_UID}\",\"title\":\"Created in the UI\",\"panels\":[]},\"overwrite\":true}" >/dev/null
 # Let Prometheus write a few scrapes so there is data to lose.
 sleep 45
 min_before="$(tsdb_min_time)"
@@ -119,6 +128,7 @@ echo "Before the upgrade: Prometheus data starts at ${min_before}"
 compose "$NEW_DIR" up -d
 smoke
 check "Grafana folder created before the upgrade is still there" folder_exists
+check "Dashboard created in the UI before the upgrade is still there" ui_dashboard_exists
 
 deadline=$((SECONDS + DASHBOARD_TIMEOUT))
 until dashboards_match >/dev/null 2>&1; do
@@ -131,9 +141,9 @@ if dashboards_match >/dev/null 2>&1; then
   echo "OK: every dashboard file of the new version is provisioned"
 else
   echo "FAIL: dashboards in Grafana differ from the files of the new version" >&2
-  echo "UIDs: < only in the files of the new version, > only in Grafana" >&2
+  echo "UIDs: < only in the files of the new version, > only in Grafana (the UI dashboard is left out)" >&2
   diff <(jq -r '.uid' "$NEW_DIR"/grafana-dashboards/json/*.json | sort) \
-    <(grafana_api '/api/search?type=dash-db' | jq -r '.[].uid' | sort) >&2 || true
+    <(grafana_api '/api/search?type=dash-db' | jq -r --arg ui "$UI_DASHBOARD_UID" '.[].uid | select(. != $ui)' | sort) >&2 || true
   failed=1
 fi
 

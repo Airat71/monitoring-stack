@@ -12,9 +12,9 @@ docker compose up -d
 bash ../scripts/smoke-check.sh
 ```
 
-`up -d` exits 0 even when Grafana cannot save a dashboard, and the smoke check does not look at dashboards. `docker compose logs grafana | grep "failed to save dashboard"` prints nothing when all of them were applied. If it prints lines or the dashboards look wrong after an upgrade (v2.2.0 to v2.3.0), see [TROUBLESHOOTING](TROUBLESHOOTING.md#dashboards-missing-or-old-after-an-upgrade).
+`up -d` exits 0 even when Grafana cannot save a dashboard, and the smoke check does not look at dashboards. `docker compose logs grafana | grep "failed to save dashboard"` prints nothing when all of them were applied. If it prints lines or the dashboards look wrong after an upgrade from v2.3.1 or earlier, see [TROUBLESHOOTING](TROUBLESHOOTING.md#dashboards-missing-or-old-after-an-upgrade).
 
-CI runs `scripts/upgrade-check.sh` on every change that touches the stack: it starts the latest release with data, switches to the new commit on the same volumes and checks the result. To run it yourself on a machine where ports 9090, 3001, 9093, 9100 and 9115 are free and no containers named `prometheus`, `grafana`, `alertmanager`, `node-exporter` or `blackbox-exporter` exist, stopped ones included (not next to a stack you use; the script stops with a message if it finds them): `git worktree add ../old <tag> && bash scripts/upgrade-check.sh ../old .` It uses its own Compose project and password, does not touch your `.env`, and removes only its own containers and volumes.
+CI runs `scripts/upgrade-check.sh` on every change that touches the stack: it starts an older version with data (the latest release, v2.3.0 and v2.2.0), switches to the new commit on the same volumes and checks the result. To run it yourself on a machine where ports 9090, 3001, 9093, 9100 and 9115 are free and no containers named `prometheus`, `grafana`, `alertmanager`, `node-exporter` or `blackbox-exporter` exist, stopped ones included (not next to a stack you use; the script stops with a message if it finds them): `git worktree add ../old <tag> && bash scripts/upgrade-check.sh ../old .` It uses its own Compose project and password, does not touch your `.env`, and removes only its own containers and volumes.
 
 ## Ansible (`/opt/monitoring`)
 
