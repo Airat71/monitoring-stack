@@ -9,11 +9,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
-- Upgrading from v2.2.0 over an existing Grafana volume now applies the `nginx`, `postgresql` and `redis` dashboards. Their files kept the same path but got new uids in v2.3.0, and Grafana 13.2.3 does not save a file in that case (`failed to save dashboard` in its log) while `docker compose up -d` exits 0. The dashboards are now provisioned from `/etc/grafana/provisioning/dashboards/monitoring-stack`. Checked on Docker Compose; not tested over an existing Ansible installation.
+- Upgrading from v2.2.0 over an existing Grafana volume now applies the `nginx`, `postgresql` and `redis` dashboards. Their files kept the same path but got new uids in v2.3.0. Grafana 13.2.3 does not save a file in that case (`failed to save dashboard` in its log) while `docker compose up -d` exits 0. The dashboards are now provisioned from `/etc/grafana/provisioning/dashboards/monitoring-stack`. Checked on Docker Compose and, in CI, with the Ansible playbook.
+- The Ansible playbook restarts Grafana when the dashboard provider file changes. Grafana reads providers only at start, so without a restart an upgraded server kept the old provider and the old dashboards. The old `grafana/provisioning/dashboards/json` folder on the server is no longer used; the playbook leaves it, delete it if you like.
 
 ### Changed
-- `disableDeletion` is now `false`: Grafana deletes provisioned dashboards whose file is gone, so old ones no longer pile up after an upgrade. Dashboards made in the UI are not touched. If you already upgraded to v2.3.0 or v2.3.1, four old dashboards stay in Grafana; delete them by hand (see `docs/TROUBLESHOOTING.md`).
-- `scripts/upgrade-check.sh` also checks that a dashboard made in the UI survives the upgrade and that nothing else is left over. The `upgrade` job of the smoke test starts from the latest release, v2.3.0 and v2.2.0.
+- `disableDeletion` is now `false`: Grafana deletes provisioned dashboards whose file is gone, so old ones no longer pile up after an upgrade. Dashboards made in the UI are not touched. While the dashboards folder is empty or not mounted, Grafana removes the provisioned ones; they return when the files are back. If you already upgraded to v2.3.0 or v2.3.1, four old dashboards stay in Grafana; delete them by hand (see `docs/TROUBLESHOOTING.md`).
+- `scripts/upgrade-check.sh` also checks that a dashboard made in the UI survives the upgrade and that nothing else is left over. The `upgrade` job of the smoke test starts from the latest release, v2.3.1, v2.3.0 and v2.2.0. A new job, `ansible-upgrade` (`scripts/ansible-upgrade-check.sh`), runs the playbook of v2.3.1, v2.3.0 or v2.2.0 and then the playbook of the new version over the same install.
 
 ## [2.3.1] - 2026-11-08
 
