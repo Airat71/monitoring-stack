@@ -8,6 +8,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.3.2] - 2026-11-17
+
 ### Fixed
 - Upgrading from v2.2.0 over an existing Grafana volume now applies the `nginx`, `postgresql` and `redis` dashboards. Their files kept the same path but got new uids in v2.3.0. Grafana 13.2.3 does not save a file in that case (`failed to save dashboard` in its log) while `docker compose up -d` exits 0. The dashboards are now provisioned from `/etc/grafana/provisioning/dashboards/monitoring-stack`. Checked on Docker Compose and, in CI, with the Ansible playbook.
 - The Ansible playbook restarts Grafana when the dashboard provider file changes. Grafana reads providers only at start, so without a restart an upgraded server kept the old provider and the old dashboards. The old `grafana/provisioning/dashboards/json` folder on the server is no longer used; the playbook leaves it, delete it if you like.
