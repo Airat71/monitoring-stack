@@ -4,7 +4,7 @@
 # Usage: upgrade-check.sh OLD_DIR NEW_DIR   (two checkouts of this repository)
 # Checks after the upgrade: smoke check passes, the Grafana folder and the dashboard created in
 # the UI before the upgrade are still there, every dashboard file of the new version is
-# provisioned (and nothing else is left over), Grafana logs no provisioning errors, Prometheus
+# provisioned (and nothing else is left over), Grafana logs no dashboard provisioning errors, Prometheus
 # kept the data that was written before the upgrade.
 # The script uses its own Compose project ("upgrade-check") and a throw-away password kept in a
 # temporary env file, so it neither reads nor changes the .env of either checkout. It publishes
@@ -150,9 +150,9 @@ fi
 # Read the log into a file first: "grep -q" in a pipe can end the writer early (exit 141 under pipefail).
 grafana_log="$WORK/grafana.log"
 compose "$NEW_DIR" logs --no-color grafana >"$grafana_log" 2>&1 || true
-if grep -q "failed to save dashboard" "$grafana_log"; then
+if grep -q -E 'logger=provisioning\.dashboard .*level=error' "$grafana_log"; then
   echo "FAIL: Grafana logs dashboard provisioning errors" >&2
-  grep "failed to save dashboard" "$grafana_log" | tail -3 >&2
+  grep -E 'logger=provisioning\.dashboard .*level=error' "$grafana_log" | tail -3 >&2
   failed=1
 else
   echo "OK: no dashboard provisioning errors in the Grafana log"
