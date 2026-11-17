@@ -1,15 +1,10 @@
 name: Smoke test
 
 on:
+  # No path filter on pull requests: "Smoke passed" is a required check, and a required check from a
+  # workflow that was skipped by a path filter stays pending and blocks the pull request.
   pull_request:
     branches: [main]
-    paths:
-      - "prometheus-grafana/**"
-      - "ansible/**"
-      - "grafana-dashboards/**"
-      - "scripts/smoke-check.sh"
-      - "scripts/upgrade-check.sh"
-      - ".github/workflows/smoke-test.yml"
   push:
     branches: [main]
     paths:
@@ -18,6 +13,7 @@ on:
       - "grafana-dashboards/**"
       - "scripts/smoke-check.sh"
       - "scripts/upgrade-check.sh"
+      - "scripts/ansible-upgrade-check.sh"
       - ".github/workflows/smoke-test.yml"
   schedule:
     # Weekly: catches drift in upstream images and the runner.
@@ -184,3 +180,20 @@ jobs:
         run: |
           docker ps -a
           cd /opt/monitoring 2>/dev/null && sudo docker compose logs --no-color --tail=100 || true
+
+  # One check to require instead of every job name: the matrix names change with the versions in the list.
+  smoke-pass:
+    name: Smoke passed
+    runs-on: ubuntu-24.04
+    needs: [compose, ansible, upgrade, ansible-upgrade]
+    if: always()
+    steps:
+      - name: All smoke jobs passed
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]] || \
+             [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]] || \
+             [[ "${{ contains(needs.*.result, 'skipped') }}" == "true" ]]; then
+            echo "One or more smoke jobs failed, were cancelled or were skipped"
+            exit 1
+          fi
+          echo "All smoke jobs passed"
