@@ -1,6 +1,6 @@
 # Quick Start
 
-Get your monitoring stack running in **5 minutes**.
+Get your monitoring stack running with Docker Compose. In CI, `docker compose up -d` and the smoke check take about a minute on a GitHub Actions runner; images are pulled, so a slow connection takes longer.
 
 ---
 

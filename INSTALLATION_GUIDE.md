@@ -9,7 +9,7 @@
 
 ---
 
-## Option A — Docker Compose (5 minutes)
+## Option A — Docker Compose
 
 ```bash
 cd prometheus-grafana
