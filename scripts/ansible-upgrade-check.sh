@@ -89,6 +89,12 @@ dashboards_match() {
 echo "Old: $(git -C "$OLD_DIR" describe --tags --always 2>/dev/null || echo "$OLD_DIR")"
 echo "New: $(git -C "$NEW_DIR" describe --tags --always 2>/dev/null || echo "$NEW_DIR")"
 
+# The playbook of v2.2.0 does not create a Grafana password (the role generates one since v2.3.0) and
+# Compose refuses to start without it, so set one first, as a v2.2.0 user had to.
+sudo install -d -m 0755 "$INSTALL_DIR"
+printf 'GRAFANA_PASSWORD=%s\n' "ansible-upgrade-check-$(openssl rand -hex 8)" | sudo tee "$INSTALL_DIR/.env" >/dev/null
+sudo chmod 0600 "$INSTALL_DIR/.env"
+
 run_playbook "$OLD_DIR"
 smoke
 grafana_api /api/dashboards/db -H "Content-Type: application/json" \
