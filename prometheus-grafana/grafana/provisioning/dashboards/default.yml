@@ -1,13 +1,18 @@
 apiVersion: 1
 
+# In Grafana 13.2.3 a dashboard file that keeps its path but gets a new uid is not saved
+# ("failed to save dashboard"). The v2.3.0 dashboards got new uids, so they are provisioned from a
+# new path. Do not change the uid of a shipped dashboard.
+# disableDeletion is false: dashboards of removed files do not pile up after an upgrade.
+# Dashboards made in the UI are not touched.
 providers:
   - name: 'default'
     orgId: 1
     folder: ''
     type: file
-    disableDeletion: true
+    disableDeletion: false
     updateIntervalSeconds: 30
     allowUiUpdates: false
     options:
-      path: /etc/grafana/provisioning/dashboards/json
+      path: /etc/grafana/provisioning/dashboards/monitoring-stack
       foldersFromFilesStructure: false

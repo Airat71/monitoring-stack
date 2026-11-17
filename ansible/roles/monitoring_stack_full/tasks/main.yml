@@ -10,7 +10,7 @@
   loop:
     - ""
     - grafana/provisioning/dashboards
-    - grafana/provisioning/dashboards/json
+    - grafana/provisioning/dashboards/monitoring-stack
     - grafana/provisioning/datasources
   loop_control:
     label: "{{ item or 'root' }}"
@@ -38,9 +38,14 @@
 - name: Copy Grafana dashboard JSON folder
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/../grafana-dashboards/json/"
-    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/json"
+    dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/monitoring-stack"
     mode: "0644"
   when: dashboard_json_dir_stat.stat.exists | default(false)
+
+- name: Remove the dashboard folder used by v2.3.1 and earlier
+  ansible.builtin.file:
+    path: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/json"
+    state: absent
 
 - name: Copy docker-compose for the monitoring stack
   ansible.builtin.template:
