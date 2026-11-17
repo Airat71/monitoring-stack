@@ -56,7 +56,7 @@
 
 - **Cause:** Upgrading from v2.2.0 to v2.3.0 over an existing Grafana volume. `nginx.json`, `postgresql.json` and `redis.json` kept their file names but got new dashboard UIDs. Grafana 13.2.3 does not save them, keeps the v2.2.0 versions and the four old dashboards whose files were removed. `up -d` still exits 0; the only sign is the Grafana log.
 - **Check:** `docker compose logs grafana | grep "failed to save dashboard"`. In this upgrade Grafana lists 13 dashboards instead of 9.
-- **Fix:** Upgrade to the first release after v2.3.1 (until then the entry is under *Unreleased* in the [CHANGELOG](../CHANGELOG.md)): `git checkout <tag>`, `cd prometheus-grafana`, `docker compose up -d`. Checked on Docker Compose, from v2.2.0 and from a fresh v2.3.0; not tested over an existing Ansible installation.
+- **Fix:** Upgrade to v2.3.2 or later: `git checkout v2.3.2`, `cd prometheus-grafana`, `docker compose up -d`. Checked on Docker Compose, from v2.2.0 and from a fresh v2.3.0; not tested over an existing Ansible installation.
 - **Already on v2.3.0 or v2.3.1:** the upgrade applies the three dashboards and the errors stop. Four old dashboards (*Node Exporter Full*, *Prometheus 2.0 Overview*, *Prometheus Blackbox Exporter*, *RabbitMQ-Overview*) stay in Grafana; delete them in the UI (Dashboards, select, Delete). Dashboards you made yourself are not deleted.
 - **Workaround for v2.3.1 and earlier:** Recreate the Grafana volume (commands run in `prometheus-grafana/`; checked on the Docker Compose path only, the Ansible path was not tested). This deletes Grafana's own database (users, preferences, anything made in the UI); the dashboards come back from the files. Prometheus and Alertmanager data are not touched.
   ```bash
