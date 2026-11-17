@@ -102,15 +102,15 @@ jobs:
           cd /opt/monitoring 2>/dev/null && sudo docker compose logs --no-color --tail=100 || true
 
   upgrade:
-    # "latest" is the newest release tag; it is skipped when HEAD is that release. v2.2.0 and v2.3.0 stay in
-    # the list on purpose: v2.2.0 -> v2.3.0 left three dashboards unapplied, and a fresh v2.3.0 has other uids.
+    # "latest" is the newest release tag; it is skipped when HEAD is that release. The fixed versions stay in
+    # the list on purpose: v2.2.0 -> v2.3.0 left three dashboards unapplied, and v2.3.0 and v2.3.1 have other uids.
     name: Upgrade from ${{ matrix.from }} keeps data and dashboards
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        from: [latest, v2.3.0, v2.2.0]
+        from: [latest, v2.3.1, v2.3.0, v2.2.0]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -149,3 +149,38 @@ jobs:
       - name: Upgrade check
         if: steps.release.outputs.tag != ''
         run: bash new/scripts/upgrade-check.sh old new
+
+  ansible-upgrade:
+    # The Ansible path of the same upgrades: v2.2.0 -> v2.3.0 left dashboards unapplied, and a playbook
+    # run that only replaces the Grafana provider file keeps the old provider until Grafana restarts.
+    name: Ansible upgrade from ${{ matrix.from }} keeps dashboards
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        from: [v2.3.1, v2.3.0, v2.2.0]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          path: new
+          persist-credentials: false
+
+      - name: Check out the version to upgrade from
+        working-directory: new
+        env:
+          TAG: ${{ matrix.from }}
+        run: git worktree add --detach ../old "$TAG"
+
+      - name: Install Ansible
+        run: pipx install ansible-core
+
+      - name: Upgrade check
+        run: bash new/scripts/ansible-upgrade-check.sh old new
+
+      - name: Container state and logs on failure
+        if: failure()
+        run: |
+          docker ps -a
+          cd /opt/monitoring 2>/dev/null && sudo docker compose logs --no-color --tail=100 || true

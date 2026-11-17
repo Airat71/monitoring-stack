@@ -26,6 +26,7 @@
     src: grafana-dashboards-provider.yml.j2
     dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/dashboards.yml"
     mode: "0644"
+  register: grafana_provider_file
 
 - name: Stat dashboard JSON dir (controller)
   ansible.builtin.stat:
@@ -41,11 +42,6 @@
     dest: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/monitoring-stack"
     mode: "0644"
   when: dashboard_json_dir_stat.stat.exists | default(false)
-
-- name: Remove the dashboard folder used by v2.3.1 and earlier
-  ansible.builtin.file:
-    path: "{{ monitoring_base_dir }}/grafana/provisioning/dashboards/json"
-    state: absent
 
 - name: Copy docker-compose for the monitoring stack
   ansible.builtin.template:
@@ -228,6 +224,16 @@
   when:
     - deploy_blackbox | default(true) | bool
     - blackbox_config_file.changed
+  changed_when: true
+
+# Grafana reads the dashboard providers only at start. Dashboard files themselves are picked up
+# every 30 seconds, so only a changed provider needs a restart.
+- name: Restart Grafana after the dashboard provider changed
+  ansible.builtin.command: docker compose restart grafana
+  args:
+    chdir: "{{ monitoring_base_dir }}"
+  when:
+    - grafana_provider_file.changed
   changed_when: true
 
 - name: Wait for Prometheus
